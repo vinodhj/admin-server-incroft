@@ -1,18 +1,69 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.jsonc`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import handleKVSync from "./handlers/kv-sync";
+import handleGraphQL from "./handlers/graphql";
+import { handleCorsPreflight } from "./cors-headers";
+import { runCacheCleanup, runCleanCacheAll } from "./handlers/cron-scheduled";
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
-	},
-} satisfies ExportedHandler<Env>;
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+    // ✅ Cron Schedule Jobs
+    switch (controller.cron) {
+      case "0 */6 * * *":
+        await runCacheCleanup(env, ctx);
+        break;
+      case "0 1 * * *":
+        await runCleanCacheAll(env, ctx);
+        break;
+      default:
+        console.error(`Unsupported cron schedule: ${controller.cron}`);
+    }
+  },
+  async fetch(request: Request, env: Env): Promise<Response> {
+    console.log(`Running in: ${env.ENVIRONMENT} mode`);
+    const url = new URL(request.url);
+
+    // ✅ Handle CORS Preflight Requests (OPTIONS)
+    if (request.method === "OPTIONS") {
+      return handleCorsPreflight(request, env);
+    }
+
+    // ✅ Handle GraphQL
+    if (url.pathname === "/graphql") {
+      try {
+        return await handleGraphQL(request, env);
+      } catch (error) {
+        console.error("GraphQL Error:", error);
+        return new Response(`Internal Server Error: ${error}`, { status: 500 });
+      }
+    }
+
+    // ✅ Handle KV Sync
+    if (url.pathname === "/kv-site-assets" && request.method === "POST") {
+      try {
+        return await handleKVSync(request, env);
+      } catch (error) {
+        return new Response(`Internal Server Error: ${error}`, { status: 500 });
+      }
+    }
+
+    return new Response(
+      /* HTML */ `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>404 Not Found</title>
+          </head>
+          <body>
+            <h1>404 Not Found</h1>
+            <p>Sorry, the page ${url.pathname !== "/" ? `(${url.pathname})` : ""} you are looking for could not be found.</p>
+          </body>
+        </html>
+      `,
+      {
+        status: 404,
+        headers: {
+          "Content-Type": "text/html",
+        },
+      },
+    );
+  },
+} as ExportedHandler<Env>;
