@@ -34,6 +34,7 @@ export const user = sqliteTable(
   (table) => [
     index("idx_email").on(table.email),
     index("idx_phone").on(table.phone),
+    index("idx_emp_code").on(table.emp_code),
     uniqueIndex("composite_email_phone").on(table.email, table.phone),
   ],
 );

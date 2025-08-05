@@ -1,6 +1,6 @@
 CREATE TABLE `user_profile` (
 	`id` text PRIMARY KEY NOT NULL,
-	'user_id' text UNIQUE NOT NULL,
+	`user_id` text UNIQUE NOT NULL,
 	`address` text NULL,
 	`city` text NULL,
 	`state` text NULL,
@@ -21,6 +21,6 @@ CREATE TABLE `user_profile` (
     
 );
 
-CREATE INDEX idx_user_id ON user (`user_id`);
+CREATE INDEX `idx_user_profile_user_id` ON `user_profile` (`user_id`);
 
-CREATE INDEX `idx_foreign_keys` ON `user_profile` (`user_id`, `designation_id`, `department_id`);
+CREATE INDEX `idx_user_profile_foreign_keys` ON `user_profile` (`user_id`, `designation_id`, `department_id`);

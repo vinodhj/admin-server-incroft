@@ -9,4 +9,4 @@ CREATE TABLE `designation` (
 	`is_disabled` INTEGER DEFAULT 0 CHECK(`is_disabled` IN (0, 1))
 );
 
-CREATE INDEX idx_name ON designation (`name`);
+CREATE INDEX `idx_designation_name` ON `designation` (`name`);

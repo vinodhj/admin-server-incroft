@@ -8,8 +8,8 @@ export const userProfile = sqliteTable(
   {
     id: text("id").primaryKey(), // nano id
     user_id: text("user_id")
-      .notNull()
       .unique()
+      .notNull()
       .references(() => user.id, { onUpdate: "restrict", onDelete: "restrict" }),
     address: text("address"),
     city: text("city"),
@@ -34,7 +34,7 @@ export const userProfile = sqliteTable(
     updated_by: text("updated_by").notNull(),
   },
   (table) => [
-    index("idx_user_id").on(table.user_id),
-    index("idx_foreign_keys").on(table.user_id, table.designation_id, table.department_id),
+    index("idx_user_profile_user_id").on(table.user_id),
+    index("idx_user_profile_foreign_keys").on(table.user_id, table.designation_id, table.department_id),
   ],
 );

@@ -19,10 +19,10 @@ CREATE TABLE `user` (
 	`is_disabled` INTEGER DEFAULT 0 CHECK(`is_disabled` IN (0, 1))
 );
 
-CREATE INDEX idx_email ON user (`email`);
+CREATE INDEX `idx_user_email` ON `user` (`email`);
 
-CREATE INDEX idx_phone ON user (`phone`);
+CREATE INDEX `idx_user_phone` ON `user` (`phone`);
 
-CREATE INDEX idx_emp_code ON user (`emp_code`);
+CREATE INDEX `idx_user_emp_code` ON `user` (`emp_code`);
 
-CREATE UNIQUE INDEX `composite_email_phone` ON `user` (`email`, `phone`);
+CREATE UNIQUE INDEX `composite_user_email_phone` ON `user` (`email`, `phone`);
