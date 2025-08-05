@@ -58,7 +58,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
         if (jwtVerifiedUser) {
           sessionUser = {
             id: jwtVerifiedUser.id,
-            role: jwtVerifiedUser.role === "ADMIN" ? Role.Admin : Role.User,
+            role: jwtVerifiedUser.role === "ADMIN" ? Role.Admin : Role.Viewer,
             email: jwtVerifiedUser.email,
             name: jwtVerifiedUser.name,
           };
@@ -66,7 +66,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
       }
 
       // Create service APIs
-      const { authAPI, userAPI, kvStorageAPI } = createAPIs({ db, env, sessionUser });
+      const { authAPI, userAPI, kvStorageAPI, categoryAPI } = createAPIs({ db, env, sessionUser });
 
       return {
         jwtSecret: env.JWT_SECRET,
@@ -76,6 +76,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
           authAPI,
           userAPI,
           kvStorageAPI,
+          categoryAPI,
         },
       };
     },
