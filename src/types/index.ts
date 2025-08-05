@@ -1,15 +1,14 @@
 import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
-  directive @public on FIELD_DEFINITION
-
   scalar DateTime
   scalar JSON
 
-  # ADMIN, MODERATOR, USER
+  # ADMIN, MANAGER, VIEWER
   enum Role {
     ADMIN
-    USER
+    MANAGER
+    VIEWER
   }
 
   enum Sort {
@@ -20,20 +19,65 @@ export const typeDefs = gql`
   enum SORT_BY {
     CREATED_AT
     UPDATED_AT
+    LAST_LOGIN_AT
+    DATE_OF_JOINING
   }
 
-  type User {
-    id: ID! #nano_id
+  type Department {
+    id: ID!
     name: String!
-    email: String!
-    password: String! # hashed
-    role: Role!
-    phone: String!
+    description: String
+    is_disabled: Boolean!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+  }
+
+  type Designation {
+    id: ID!
+    name: String!
+    description: String
+    is_disabled: Boolean!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+  }
+
+  type UserProfile {
+    id: ID!
+    user_id: String!
     address: String
     city: String
     state: String
     country: String
     zipcode: String
+    designation_id: String!
+    department_id: String!
+    designation: Designation!
+    department: Department!
+    date_of_joining: DateTime
+    date_of_leaving: DateTime
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+  }
+
+  type User {
+    id: ID! #nano_id
+    emp_code: String! # auto-generated unique employee code
+    name: String!
+    email: String!
+    password: String! # hashed
+    role: Role!
+    phone: String!
+    last_login_at: DateTime
+    force_password_change: Boolean!
+    is_verified: Boolean!
+    is_disabled: Boolean!
+    profile: UserProfile
     created_at: DateTime!
     updated_at: DateTime!
     created_by: String!
@@ -45,12 +89,15 @@ export const typeDefs = gql`
     email: String!
     password: String!
     phone: String!
-    role: Role
+    role: Role!
     address: String
     city: String
     state: String
     country: String
     zipcode: String
+    designation_id: String!
+    department_id: String!
+    date_of_joining: DateTime
   }
 
   type SignUpResponse {
@@ -71,28 +118,40 @@ export const typeDefs = gql`
 
   type UserSuccessResponse {
     id: ID!
+    emp_code: String!
     name: String!
     email: String!
     phone: String!
     role: Role!
+    is_verified: Boolean!
+    is_disabled: Boolean!
+    profile: UserProfileResponse
+  }
+
+  type UserProfileResponse {
     address: String
     city: String
     state: String
     country: String
     zipcode: String
+    designation: Designation!
+    department: Department!
+    date_of_joining: DateTime
+    date_of_leaving: DateTime
   }
 
   type UserResponse {
     id: ID!
+    emp_code: String!
     name: String!
     email: String!
     role: Role!
     phone: String!
-    address: String
-    city: String
-    state: String
-    country: String
-    zipcode: String
+    last_login_at: DateTime
+    force_password_change: Boolean!
+    is_verified: Boolean!
+    is_disabled: Boolean!
+    profile: UserProfile
     created_at: DateTime!
     updated_at: DateTime!
     created_by: String!
@@ -114,15 +173,23 @@ export const typeDefs = gql`
 
   input EditUserInput {
     id: ID!
+    emp_code: String
     name: String!
     email: String!
     phone: String!
     role: Role
+    is_verified: Boolean
+    is_disabled: Boolean
+    force_password_change: Boolean
     address: String
     city: String
     state: String
     country: String
     zipcode: String
+    designation_id: String
+    department_id: String
+    date_of_joining: DateTime
+    date_of_leaving: DateTime
   }
 
   type EditUserResponse {
@@ -137,12 +204,47 @@ export const typeDefs = gql`
     confirm_password: String!
   }
 
+  input CreateDepartmentInput {
+    name: String!
+    description: String
+  }
+
+  input EditDepartmentInput {
+    id: ID!
+    name: String!
+    description: String
+    is_disabled: Boolean
+  }
+
+  input DeleteDepartmentInput {
+    id: ID!
+  }
+
+  input CreateDesignationInput {
+    name: String!
+    description: String
+  }
+
+  input EditDesignationInput {
+    id: ID!
+    name: String!
+    description: String
+    is_disabled: Boolean
+  }
+
+  input DeleteDesignationInput {
+    id: ID!
+  }
+
   enum ColumnName {
     id
+    emp_code
     name
     email
     phone
     role
+    is_verified
+    is_disabled
     address
     city
     state
@@ -168,10 +270,37 @@ export const typeDefs = gql`
     after: String
     sort: Sort = DESC
     sort_by: SORT_BY = CREATED_AT
+    include_disabled: Boolean = false
+  }
+
+  input PaginatedDepartmentsInputs {
+    first: Int = 10
+    after: String
+    sort: Sort = DESC
+    sort_by: SORT_BY = CREATED_AT
+    include_disabled: Boolean = false
+  }
+
+  input PaginatedDesignationsInputs {
+    first: Int = 10
+    after: String
+    sort: Sort = DESC
+    sort_by: SORT_BY = CREATED_AT
+    include_disabled: Boolean = false
   }
 
   type UserEdge {
     node: UserResponse!
+    cursor: String!
+  }
+
+  type DepartmentEdge {
+    node: Department!
+    cursor: String!
+  }
+
+  type DesignationEdge {
+    node: Designation!
     cursor: String!
   }
 
@@ -186,20 +315,46 @@ export const typeDefs = gql`
     pageInfo: PageInfo!
   }
 
+  type DepartmentsConnection {
+    edges: [DepartmentEdge!]!
+    pageInfo: PageInfo!
+  }
+
+  type DesignationsConnection {
+    edges: [DesignationEdge!]!
+    pageInfo: PageInfo!
+  }
+
   type Query {
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
+
     users: [UserResponse]
     paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection
+
+    departments: [Department]
+    paginatedDepartments(ids: [ID!], input: PaginatedDepartmentsInputs): DepartmentsConnection
+
+    designations: [Designation]
+    paginatedDesignations(ids: [ID!], input: PaginatedDesignationsInputs): DesignationsConnection
+
     adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
 
   type Mutation {
-    signUp(input: SignUpInput!): SignUpResponse! @public
-    login(input: LoginInput!): LoginResponse! @public
+    signUp(input: SignUpInput!): SignUpResponse!
+    login(input: LoginInput!): LoginResponse!
     editUser(input: EditUserInput!): EditUserResponse!
     deleteUser(input: DeleteUserInput!): Boolean!
     changePassword(input: ChangePasswordInput!): Boolean!
     logout: LogoutResponse!
+
+    createDepartment(input: CreateDepartmentInput!): Department!
+    editDepartment(input: EditDepartmentInput!): Department!
+    deleteDepartment(input: DeleteDepartmentInput!): Boolean!
+
+    createDesignation(input: CreateDesignationInput!): Designation!
+    editDesignation(input: EditDesignationInput!): Designation!
+    deleteDesignation(input: DeleteDesignationInput!): Boolean!
   }
 `;
