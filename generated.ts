@@ -28,6 +28,39 @@ export type AdminKvAssetInput = {
   kv_key: Scalars["String"]["input"];
 };
 
+export type Category = {
+  __typename?: "Category";
+  created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
+  id: Scalars["ID"]["output"];
+  name: Scalars["String"]["output"];
+  updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+};
+
+export type CategoryFilter = {
+  id?: InputMaybe<Scalars["ID"]["input"]>;
+  search?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type CategoryResponse = {
+  __typename?: "CategoryResponse";
+  category?: Maybe<CategorySuccessResponse>;
+  success: Scalars["Boolean"]["output"];
+};
+
+export type CategorySuccessResponse = {
+  __typename?: "CategorySuccessResponse";
+  category_type: CategoryType;
+  id: Scalars["ID"]["output"];
+  name: Scalars["String"]["output"];
+};
+
+export enum CategoryType {
+  Department = "DEPARTMENT",
+  Designation = "DESIGNATION",
+}
+
 export type ChangePasswordInput = {
   confirm_password: Scalars["String"]["input"];
   current_password: Scalars["String"]["input"];
@@ -51,21 +84,13 @@ export enum ColumnName {
   Zipcode = "zipcode",
 }
 
-export type CreateDepartmentInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
+export type CreateCategoryInput = {
+  category_type: CategoryType;
   name: Scalars["String"]["input"];
 };
 
-export type CreateDesignationInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  name: Scalars["String"]["input"];
-};
-
-export type DeleteDepartmentInput = {
-  id: Scalars["ID"]["input"];
-};
-
-export type DeleteDesignationInput = {
+export type DeleteCategoryInput = {
+  category_type: CategoryType;
   id: Scalars["ID"]["input"];
 };
 
@@ -85,18 +110,6 @@ export type Department = {
   updated_by: Scalars["String"]["output"];
 };
 
-export type DepartmentEdge = {
-  __typename?: "DepartmentEdge";
-  cursor: Scalars["String"]["output"];
-  node: Department;
-};
-
-export type DepartmentsConnection = {
-  __typename?: "DepartmentsConnection";
-  edges: Array<DepartmentEdge>;
-  pageInfo: PageInfo;
-};
-
 export type Designation = {
   __typename?: "Designation";
   created_at: Scalars["DateTime"]["output"];
@@ -107,32 +120,6 @@ export type Designation = {
   name: Scalars["String"]["output"];
   updated_at: Scalars["DateTime"]["output"];
   updated_by: Scalars["String"]["output"];
-};
-
-export type DesignationEdge = {
-  __typename?: "DesignationEdge";
-  cursor: Scalars["String"]["output"];
-  node: Designation;
-};
-
-export type DesignationsConnection = {
-  __typename?: "DesignationsConnection";
-  edges: Array<DesignationEdge>;
-  pageInfo: PageInfo;
-};
-
-export type EditDepartmentInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  id: Scalars["ID"]["input"];
-  is_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
-  name: Scalars["String"]["input"];
-};
-
-export type EditDesignationInput = {
-  description?: InputMaybe<Scalars["String"]["input"]>;
-  id: Scalars["ID"]["input"];
-  is_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
-  name: Scalars["String"]["input"];
 };
 
 export type EditUserInput = {
@@ -162,6 +149,18 @@ export type EditUserResponse = {
   user?: Maybe<UserSuccessResponse>;
 };
 
+export type GenericCategoryResponse = {
+  __typename?: "GenericCategoryResponse";
+  category_type: CategoryType;
+  created_at: Scalars["DateTime"]["output"];
+  created_by: Scalars["String"]["output"];
+  id: Scalars["ID"]["output"];
+  is_disabled: Scalars["Boolean"]["output"];
+  name: Scalars["String"]["output"];
+  updated_at: Scalars["DateTime"]["output"];
+  updated_by: Scalars["String"]["output"];
+};
+
 export type LoginInput = {
   email: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
@@ -182,49 +181,30 @@ export type LogoutResponse = {
 export type Mutation = {
   __typename?: "Mutation";
   changePassword: Scalars["Boolean"]["output"];
-  createDepartment: Department;
-  createDesignation: Designation;
-  deleteDepartment: Scalars["Boolean"]["output"];
-  deleteDesignation: Scalars["Boolean"]["output"];
+  createCategory: CategoryResponse;
+  deleteCategory: Scalars["Boolean"]["output"];
   deleteUser: Scalars["Boolean"]["output"];
-  editDepartment: Department;
-  editDesignation: Designation;
   editUser: EditUserResponse;
   login: LoginResponse;
   logout: LogoutResponse;
   signUp: SignUpResponse;
+  updateCategory: CategoryResponse;
 };
 
 export type MutationChangePasswordArgs = {
   input: ChangePasswordInput;
 };
 
-export type MutationCreateDepartmentArgs = {
-  input: CreateDepartmentInput;
+export type MutationCreateCategoryArgs = {
+  input: CreateCategoryInput;
 };
 
-export type MutationCreateDesignationArgs = {
-  input: CreateDesignationInput;
-};
-
-export type MutationDeleteDepartmentArgs = {
-  input: DeleteDepartmentInput;
-};
-
-export type MutationDeleteDesignationArgs = {
-  input: DeleteDesignationInput;
+export type MutationDeleteCategoryArgs = {
+  input: DeleteCategoryInput;
 };
 
 export type MutationDeleteUserArgs = {
   input: DeleteUserInput;
-};
-
-export type MutationEditDepartmentArgs = {
-  input: EditDepartmentInput;
-};
-
-export type MutationEditDesignationArgs = {
-  input: EditDesignationInput;
 };
 
 export type MutationEditUserArgs = {
@@ -239,27 +219,15 @@ export type MutationSignUpArgs = {
   input: SignUpInput;
 };
 
+export type MutationUpdateCategoryArgs = {
+  input: UpdateCategoryInput;
+};
+
 export type PageInfo = {
   __typename?: "PageInfo";
   endCursor?: Maybe<Scalars["String"]["output"]>;
   hasNextPage: Scalars["Boolean"]["output"];
   totalCount: Scalars["Int"]["output"];
-};
-
-export type PaginatedDepartmentsInputs = {
-  after?: InputMaybe<Scalars["String"]["input"]>;
-  first?: InputMaybe<Scalars["Int"]["input"]>;
-  include_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
-  sort?: InputMaybe<Sort>;
-  sort_by?: InputMaybe<Sort_By>;
-};
-
-export type PaginatedDesignationsInputs = {
-  after?: InputMaybe<Scalars["String"]["input"]>;
-  first?: InputMaybe<Scalars["Int"]["input"]>;
-  include_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
-  sort?: InputMaybe<Sort>;
-  sort_by?: InputMaybe<Sort_By>;
 };
 
 export type PaginatedUsersInputs = {
@@ -273,10 +241,8 @@ export type PaginatedUsersInputs = {
 export type Query = {
   __typename?: "Query";
   adminKvAsset?: Maybe<AdminKvAsset>;
-  departments?: Maybe<Array<Maybe<Department>>>;
-  designations?: Maybe<Array<Maybe<Designation>>>;
-  paginatedDepartments?: Maybe<DepartmentsConnection>;
-  paginatedDesignations?: Maybe<DesignationsConnection>;
+  departments?: Maybe<Array<Maybe<Category>>>;
+  designations?: Maybe<Array<Maybe<Category>>>;
   paginatedUsers?: Maybe<UsersConnection>;
   userByEmail?: Maybe<UserResponse>;
   userByfield?: Maybe<Array<Maybe<UserResponse>>>;
@@ -287,14 +253,12 @@ export type QueryAdminKvAssetArgs = {
   input: AdminKvAssetInput;
 };
 
-export type QueryPaginatedDepartmentsArgs = {
-  ids?: InputMaybe<Array<Scalars["ID"]["input"]>>;
-  input?: InputMaybe<PaginatedDepartmentsInputs>;
+export type QueryDepartmentsArgs = {
+  input?: InputMaybe<CategoryFilter>;
 };
 
-export type QueryPaginatedDesignationsArgs = {
-  ids?: InputMaybe<Array<Scalars["ID"]["input"]>>;
-  input?: InputMaybe<PaginatedDesignationsInputs>;
+export type QueryDesignationsArgs = {
+  input?: InputMaybe<CategoryFilter>;
 };
 
 export type QueryPaginatedUsersArgs = {
@@ -349,6 +313,12 @@ export enum Sort {
   Asc = "ASC",
   Desc = "DESC",
 }
+
+export type UpdateCategoryInput = {
+  category_type: CategoryType;
+  id: Scalars["ID"]["input"];
+  name: Scalars["String"]["input"];
+};
 
 export type User = {
   __typename?: "User";
@@ -528,24 +498,22 @@ export type ResolversTypes = {
   AdminKvAsset: ResolverTypeWrapper<AdminKvAsset>;
   AdminKvAssetInput: AdminKvAssetInput;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
+  Category: ResolverTypeWrapper<Category>;
+  CategoryFilter: CategoryFilter;
+  CategoryResponse: ResolverTypeWrapper<CategoryResponse>;
+  CategorySuccessResponse: ResolverTypeWrapper<CategorySuccessResponse>;
+  CategoryType: CategoryType;
   ChangePasswordInput: ChangePasswordInput;
   ColumnName: ColumnName;
-  CreateDepartmentInput: CreateDepartmentInput;
-  CreateDesignationInput: CreateDesignationInput;
+  CreateCategoryInput: CreateCategoryInput;
   DateTime: ResolverTypeWrapper<Scalars["DateTime"]["output"]>;
-  DeleteDepartmentInput: DeleteDepartmentInput;
-  DeleteDesignationInput: DeleteDesignationInput;
+  DeleteCategoryInput: DeleteCategoryInput;
   DeleteUserInput: DeleteUserInput;
   Department: ResolverTypeWrapper<Department>;
-  DepartmentEdge: ResolverTypeWrapper<DepartmentEdge>;
-  DepartmentsConnection: ResolverTypeWrapper<DepartmentsConnection>;
   Designation: ResolverTypeWrapper<Designation>;
-  DesignationEdge: ResolverTypeWrapper<DesignationEdge>;
-  DesignationsConnection: ResolverTypeWrapper<DesignationsConnection>;
-  EditDepartmentInput: EditDepartmentInput;
-  EditDesignationInput: EditDesignationInput;
   EditUserInput: EditUserInput;
   EditUserResponse: ResolverTypeWrapper<EditUserResponse>;
+  GenericCategoryResponse: ResolverTypeWrapper<GenericCategoryResponse>;
   ID: ResolverTypeWrapper<Scalars["ID"]["output"]>;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
@@ -554,8 +522,6 @@ export type ResolversTypes = {
   LogoutResponse: ResolverTypeWrapper<LogoutResponse>;
   Mutation: ResolverTypeWrapper<{}>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
-  PaginatedDepartmentsInputs: PaginatedDepartmentsInputs;
-  PaginatedDesignationsInputs: PaginatedDesignationsInputs;
   PaginatedUsersInputs: PaginatedUsersInputs;
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
@@ -564,6 +530,7 @@ export type ResolversTypes = {
   SignUpResponse: ResolverTypeWrapper<SignUpResponse>;
   Sort: Sort;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
+  UpdateCategoryInput: UpdateCategoryInput;
   User: ResolverTypeWrapper<User>;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
@@ -580,23 +547,20 @@ export type ResolversParentTypes = {
   AdminKvAsset: AdminKvAsset;
   AdminKvAssetInput: AdminKvAssetInput;
   Boolean: Scalars["Boolean"]["output"];
+  Category: Category;
+  CategoryFilter: CategoryFilter;
+  CategoryResponse: CategoryResponse;
+  CategorySuccessResponse: CategorySuccessResponse;
   ChangePasswordInput: ChangePasswordInput;
-  CreateDepartmentInput: CreateDepartmentInput;
-  CreateDesignationInput: CreateDesignationInput;
+  CreateCategoryInput: CreateCategoryInput;
   DateTime: Scalars["DateTime"]["output"];
-  DeleteDepartmentInput: DeleteDepartmentInput;
-  DeleteDesignationInput: DeleteDesignationInput;
+  DeleteCategoryInput: DeleteCategoryInput;
   DeleteUserInput: DeleteUserInput;
   Department: Department;
-  DepartmentEdge: DepartmentEdge;
-  DepartmentsConnection: DepartmentsConnection;
   Designation: Designation;
-  DesignationEdge: DesignationEdge;
-  DesignationsConnection: DesignationsConnection;
-  EditDepartmentInput: EditDepartmentInput;
-  EditDesignationInput: EditDesignationInput;
   EditUserInput: EditUserInput;
   EditUserResponse: EditUserResponse;
+  GenericCategoryResponse: GenericCategoryResponse;
   ID: Scalars["ID"]["output"];
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
@@ -605,13 +569,12 @@ export type ResolversParentTypes = {
   LogoutResponse: LogoutResponse;
   Mutation: {};
   PageInfo: PageInfo;
-  PaginatedDepartmentsInputs: PaginatedDepartmentsInputs;
-  PaginatedDesignationsInputs: PaginatedDesignationsInputs;
   PaginatedUsersInputs: PaginatedUsersInputs;
   Query: {};
   SignUpInput: SignUpInput;
   SignUpResponse: SignUpResponse;
   String: Scalars["String"]["output"];
+  UpdateCategoryInput: UpdateCategoryInput;
   User: User;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
@@ -629,6 +592,35 @@ export type AdminKvAssetResolvers<
 > = {
   kv_key?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   kv_value?: Resolver<Maybe<ResolversTypes["JSON"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CategoryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Category"] = ResolversParentTypes["Category"]> = {
+  created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CategoryResponseResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["CategoryResponse"] = ResolversParentTypes["CategoryResponse"],
+> = {
+  category?: Resolver<Maybe<ResolversTypes["CategorySuccessResponse"]>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CategorySuccessResponseResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["CategorySuccessResponse"] = ResolversParentTypes["CategorySuccessResponse"],
+> = {
+  category_type?: Resolver<ResolversTypes["CategoryType"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -651,24 +643,6 @@ export type DepartmentResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DepartmentEdgeResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes["DepartmentEdge"] = ResolversParentTypes["DepartmentEdge"],
-> = {
-  cursor?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes["Department"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type DepartmentsConnectionResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes["DepartmentsConnection"] = ResolversParentTypes["DepartmentsConnection"],
-> = {
-  edges?: Resolver<Array<ResolversTypes["DepartmentEdge"]>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes["PageInfo"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type DesignationResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["Designation"] = ResolversParentTypes["Designation"],
@@ -684,30 +658,27 @@ export type DesignationResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DesignationEdgeResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes["DesignationEdge"] = ResolversParentTypes["DesignationEdge"],
-> = {
-  cursor?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  node?: Resolver<ResolversTypes["Designation"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type DesignationsConnectionResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes["DesignationsConnection"] = ResolversParentTypes["DesignationsConnection"],
-> = {
-  edges?: Resolver<Array<ResolversTypes["DesignationEdge"]>, ParentType, ContextType>;
-  pageInfo?: Resolver<ResolversTypes["PageInfo"], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
 export type EditUserResponseResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes["EditUserResponse"] = ResolversParentTypes["EditUserResponse"],
 > = {
   success?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes["UserSuccessResponse"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GenericCategoryResponseResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["GenericCategoryResponse"] = ResolversParentTypes["GenericCategoryResponse"],
+> = {
+  category_type?: Resolver<ResolversTypes["CategoryType"], ParentType, ContextType>;
+  created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  is_disabled?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
+  updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -735,22 +706,24 @@ export type LogoutResponseResolvers<
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes["Mutation"] = ResolversParentTypes["Mutation"]> = {
   changePassword?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationChangePasswordArgs, "input">>;
-  createDepartment?: Resolver<ResolversTypes["Department"], ParentType, ContextType, RequireFields<MutationCreateDepartmentArgs, "input">>;
-  createDesignation?: Resolver<
-    ResolversTypes["Designation"],
+  createCategory?: Resolver<
+    ResolversTypes["CategoryResponse"],
     ParentType,
     ContextType,
-    RequireFields<MutationCreateDesignationArgs, "input">
+    RequireFields<MutationCreateCategoryArgs, "input">
   >;
-  deleteDepartment?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteDepartmentArgs, "input">>;
-  deleteDesignation?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteDesignationArgs, "input">>;
+  deleteCategory?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteCategoryArgs, "input">>;
   deleteUser?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteUserArgs, "input">>;
-  editDepartment?: Resolver<ResolversTypes["Department"], ParentType, ContextType, RequireFields<MutationEditDepartmentArgs, "input">>;
-  editDesignation?: Resolver<ResolversTypes["Designation"], ParentType, ContextType, RequireFields<MutationEditDesignationArgs, "input">>;
   editUser?: Resolver<ResolversTypes["EditUserResponse"], ParentType, ContextType, RequireFields<MutationEditUserArgs, "input">>;
   login?: Resolver<ResolversTypes["LoginResponse"], ParentType, ContextType, RequireFields<MutationLoginArgs, "input">>;
   logout?: Resolver<ResolversTypes["LogoutResponse"], ParentType, ContextType>;
   signUp?: Resolver<ResolversTypes["SignUpResponse"], ParentType, ContextType, RequireFields<MutationSignUpArgs, "input">>;
+  updateCategory?: Resolver<
+    ResolversTypes["CategoryResponse"],
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpdateCategoryArgs, "input">
+  >;
 };
 
 export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes["PageInfo"] = ResolversParentTypes["PageInfo"]> = {
@@ -762,20 +735,8 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
-  departments?: Resolver<Maybe<Array<Maybe<ResolversTypes["Department"]>>>, ParentType, ContextType>;
-  designations?: Resolver<Maybe<Array<Maybe<ResolversTypes["Designation"]>>>, ParentType, ContextType>;
-  paginatedDepartments?: Resolver<
-    Maybe<ResolversTypes["DepartmentsConnection"]>,
-    ParentType,
-    ContextType,
-    Partial<QueryPaginatedDepartmentsArgs>
-  >;
-  paginatedDesignations?: Resolver<
-    Maybe<ResolversTypes["DesignationsConnection"]>,
-    ParentType,
-    ContextType,
-    Partial<QueryPaginatedDesignationsArgs>
-  >;
+  departments?: Resolver<Maybe<Array<Maybe<ResolversTypes["Category"]>>>, ParentType, ContextType, Partial<QueryDepartmentsArgs>>;
+  designations?: Resolver<Maybe<Array<Maybe<ResolversTypes["Category"]>>>, ParentType, ContextType, Partial<QueryDesignationsArgs>>;
   paginatedUsers?: Resolver<Maybe<ResolversTypes["UsersConnection"]>, ParentType, ContextType, Partial<QueryPaginatedUsersArgs>>;
   userByEmail?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType, RequireFields<QueryUserByEmailArgs, "input">>;
   userByfield?: Resolver<
@@ -911,14 +872,14 @@ export type UsersConnectionResolvers<
 
 export type Resolvers<ContextType = any> = {
   AdminKvAsset?: AdminKvAssetResolvers<ContextType>;
+  Category?: CategoryResolvers<ContextType>;
+  CategoryResponse?: CategoryResponseResolvers<ContextType>;
+  CategorySuccessResponse?: CategorySuccessResponseResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   Department?: DepartmentResolvers<ContextType>;
-  DepartmentEdge?: DepartmentEdgeResolvers<ContextType>;
-  DepartmentsConnection?: DepartmentsConnectionResolvers<ContextType>;
   Designation?: DesignationResolvers<ContextType>;
-  DesignationEdge?: DesignationEdgeResolvers<ContextType>;
-  DesignationsConnection?: DesignationsConnectionResolvers<ContextType>;
   EditUserResponse?: EditUserResponseResolvers<ContextType>;
+  GenericCategoryResponse?: GenericCategoryResponseResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   LoginResponse?: LoginResponseResolvers<ContextType>;
   LogoutResponse?: LogoutResponseResolvers<ContextType>;

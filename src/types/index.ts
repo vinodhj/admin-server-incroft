@@ -204,36 +204,65 @@ export const typeDefs = gql`
     confirm_password: String!
   }
 
-  input CreateDepartmentInput {
-    name: String!
-    description: String
+  # Enum for different category types
+  enum CategoryType {
+    DEPARTMENT
+    DESIGNATION
+    # Add more category types as needed
   }
 
-  input EditDepartmentInput {
+  # Generic category type to represent different category entities - we not using this for now
+  type GenericCategoryResponse {
     id: ID!
     name: String!
-    description: String
-    is_disabled: Boolean
+    category_type: CategoryType!
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
+    is_disabled: Boolean!
   }
 
-  input DeleteDepartmentInput {
-    id: ID!
-  }
-
-  input CreateDesignationInput {
-    name: String!
-    description: String
-  }
-
-  input EditDesignationInput {
+  type Category {
     id: ID!
     name: String!
-    description: String
-    is_disabled: Boolean
+    created_at: DateTime!
+    updated_at: DateTime!
+    created_by: String!
+    updated_by: String!
   }
 
-  input DeleteDesignationInput {
+  type CategorySuccessResponse {
     id: ID!
+    name: String!
+    category_type: CategoryType!
+  }
+
+  type CategoryResponse {
+    success: Boolean!
+    category: CategorySuccessResponse
+  }
+
+  # Generic input for creating/updating categories
+  input CreateCategoryInput {
+    category_type: CategoryType!
+    name: String!
+  }
+
+  input UpdateCategoryInput {
+    id: ID!
+    category_type: CategoryType!
+    name: String!
+  }
+
+  input DeleteCategoryInput {
+    id: ID!
+    category_type: CategoryType!
+  }
+
+  input CategoryFilter {
+    id: ID
+    search: String # Allow partial name matching
   }
 
   enum ColumnName {
@@ -273,34 +302,8 @@ export const typeDefs = gql`
     include_disabled: Boolean = false
   }
 
-  input PaginatedDepartmentsInputs {
-    first: Int = 10
-    after: String
-    sort: Sort = DESC
-    sort_by: SORT_BY = CREATED_AT
-    include_disabled: Boolean = false
-  }
-
-  input PaginatedDesignationsInputs {
-    first: Int = 10
-    after: String
-    sort: Sort = DESC
-    sort_by: SORT_BY = CREATED_AT
-    include_disabled: Boolean = false
-  }
-
   type UserEdge {
     node: UserResponse!
-    cursor: String!
-  }
-
-  type DepartmentEdge {
-    node: Department!
-    cursor: String!
-  }
-
-  type DesignationEdge {
-    node: Designation!
     cursor: String!
   }
 
@@ -315,16 +318,6 @@ export const typeDefs = gql`
     pageInfo: PageInfo!
   }
 
-  type DepartmentsConnection {
-    edges: [DepartmentEdge!]!
-    pageInfo: PageInfo!
-  }
-
-  type DesignationsConnection {
-    edges: [DesignationEdge!]!
-    pageInfo: PageInfo!
-  }
-
   type Query {
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
@@ -332,11 +325,9 @@ export const typeDefs = gql`
     users: [UserResponse]
     paginatedUsers(ids: [ID!], input: PaginatedUsersInputs): UsersConnection
 
-    departments: [Department]
-    paginatedDepartments(ids: [ID!], input: PaginatedDepartmentsInputs): DepartmentsConnection
-
-    designations: [Designation]
-    paginatedDesignations(ids: [ID!], input: PaginatedDesignationsInputs): DesignationsConnection
+    # Categories
+    departments(input: CategoryFilter): [Category]
+    designations(input: CategoryFilter): [Category]
 
     adminKvAsset(input: AdminKvAssetInput!): AdminKvAsset
   }
@@ -349,12 +340,9 @@ export const typeDefs = gql`
     changePassword(input: ChangePasswordInput!): Boolean!
     logout: LogoutResponse!
 
-    createDepartment(input: CreateDepartmentInput!): Department!
-    editDepartment(input: EditDepartmentInput!): Department!
-    deleteDepartment(input: DeleteDepartmentInput!): Boolean!
-
-    createDesignation(input: CreateDesignationInput!): Designation!
-    editDesignation(input: EditDesignationInput!): Designation!
-    deleteDesignation(input: DeleteDesignationInput!): Boolean!
+    # Generic mutation for creating/updating/deleting category
+    createCategory(input: CreateCategoryInput!): CategoryResponse!
+    updateCategory(input: UpdateCategoryInput!): CategoryResponse!
+    deleteCategory(input: DeleteCategoryInput!): Boolean!
   }
 `;
