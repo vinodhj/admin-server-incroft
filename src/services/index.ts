@@ -6,6 +6,8 @@ import { DrizzleD1Database } from "drizzle-orm/d1";
 import { KvStorageServiceAPI } from "./kv-storage-service";
 import { KvStorageDataSource } from "@src/datasources/kv-storage";
 import { Role } from "db/schema/user";
+import { CategoryServiceAPI } from "./category-service";
+import { CategoryDataSource } from "@src/datasources/category-datasources";
 
 export type SessionUserType = {
   id: string;
@@ -24,6 +26,7 @@ export interface APIs {
   authAPI: AuthServiceAPI;
   userAPI: UserServiceAPI;
   kvStorageAPI: KvStorageServiceAPI;
+  categoryAPI: CategoryServiceAPI;
 }
 
 /**
@@ -42,5 +45,9 @@ export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
   const userDataSource = new UserDataSource({ db, sessionUser });
   const userAPI = new UserServiceAPI({ userDataSource, sessionUser });
 
-  return { authAPI, userAPI, kvStorageAPI };
+  // Category Service API
+  const categoryDataSource = new CategoryDataSource({ db, sessionUser });
+  const categoryAPI = new CategoryServiceAPI({ categoryDataSource, sessionUser });
+
+  return { authAPI, userAPI, kvStorageAPI, categoryAPI };
 };
