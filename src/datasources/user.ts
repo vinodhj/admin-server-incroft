@@ -231,13 +231,14 @@ export class UserDataSource {
   // Helper method to build user update data
   private buildUserUpdateData(input: EditUserInput): Partial<typeof user.$inferInsert> {
     const role = this.mapRole(input.role);
+    const isRoleAdmin = this.sessionUser?.role === Role.Admin;
 
     return {
+      ...(isRoleAdmin && { email: input.email }), // Only admin can update email
+      ...(isRoleAdmin && { role }), // Only admin can update role
       first_name: input.first_name,
       last_name: input.last_name,
-      email: input.email,
       phone: input.phone,
-      role,
       ...(this.isDefined(input.is_verified) && { is_verified: input.is_verified }),
       ...(this.isDefined(input.is_disabled) && { is_disabled: input.is_disabled }),
       ...(this.isDefined(input.force_password_change) && { force_password_change: input.force_password_change }),
@@ -269,6 +270,13 @@ export class UserDataSource {
       "designation_id" | "department_id" | "employment_type" | "work_location" | "date_of_joining" | "date_of_leaving"
     >
   > {
+    const isRoleAdmin = this.sessionUser?.role === Role.Admin;
+
+    // If the user is not an admin, return an empty object
+    if (!isRoleAdmin) {
+      return {};
+    }
+
     const result: Partial<
       Pick<
         typeof userProfile.$inferInsert,

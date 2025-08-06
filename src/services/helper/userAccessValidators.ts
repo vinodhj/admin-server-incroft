@@ -9,7 +9,7 @@ export interface TargetIdentifier {
 
 export const validateUserAccess = (sessionUser: SessionUserType, target: TargetIdentifier, isTargetCheck?: boolean): void => {
   if (!sessionUser?.role) {
-    throw new GraphQLError("User role is required", {
+    throw new GraphQLError("Role is required", {
       extensions: { code: "ROLE_REQUIRED" },
     });
   }
