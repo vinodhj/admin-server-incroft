@@ -12,6 +12,7 @@ import {
   Sort_By,
   UserByEmailInput,
   UserByFieldInput,
+  UserProfile,
   UserResponse,
   UsersConnection,
 } from "generated";
@@ -85,6 +86,19 @@ export class UserServiceAPI {
     return users;
   }
 
+  async userProfileById(id: string): Promise<UserProfile | null> {
+    validateUserAccess(this.sessionUser, { id });
+    const profile = await this.userDataSource.userProfileById(id);
+    if (!profile) return null;
+    // Ensure department and designation are present
+    return {
+      ...profile,
+      // These will be resolved by nested resolvers
+      department: null as any,
+      designation: null as any,
+    };
+  }
+
   async userByEmail(input: UserByEmailInput): Promise<UserResponse> {
     validateUserAccess(this.sessionUser, { email: input.email });
 
@@ -131,17 +145,17 @@ export class UserServiceAPI {
     }
 
     let value = input.value;
+
     if (input.field === ColumnName.Role) {
-      const validRoles = ["ADMIN", "USER"];
-      if (!validRoles.includes(input.value.toUpperCase())) {
-        throw new GraphQLError("Invalid role value", {
-          extensions: {
-            code: "INPUT_INVALID_ROLE",
-          },
-        });
+      let role = Role.Viewer;
+      if (input.value === "ADMIN") {
+        role = Role.Admin;
+      } else if (input.value === "MANAGER") {
+        role = Role.Manager;
       }
-      value = input.value.toUpperCase() === "ADMIN" ? Role.Admin : Role.User;
-    } else if (input.field === ColumnName.Name) {
+
+      value = role;
+    } else if (input.field === ColumnName.FirstName || input.field === ColumnName.LastName) {
       // Concatenate a wildcard % with the user_id
       value = `${input.value}%`;
     }

@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rm -rf ./dist ./node_modules",
     "clean:dist": "rm -rf ./dist",
+    "reset:db": "rm -rf .db-local && bun run migrate && bun run dev",
     "migrate": "./migrate.sh",
     "generate": "graphql-codegen",
     "migration-list": "wrangler d1 migrations list DB",

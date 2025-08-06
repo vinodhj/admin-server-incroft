@@ -36,16 +36,31 @@ export class CategoryDataSource {
       [CategoryType.Department]: department,
       [CategoryType.Designation]: designation,
     };
-    if (!this.sessionUser) {
-      throw new GraphQLError("Session user is required for category operations", {
-        extensions: {
-          code: "UNAUTHENTICATED",
-        },
-      });
-    }
   }
 
-  async createCategory(category_type: CategoryType, name: string) {
+  /**
+   * Create audit fields using auto-generated User type
+   */
+  private UpdateAuditFields() {
+    return {
+      updated_at: new Date(),
+      updated_by: this.sessionUser?.name ?? "SYSTEM",
+    };
+  }
+
+  private createAuditFields() {
+    const timestamp = new Date();
+    const user = this.sessionUser?.name ?? "SYSTEM";
+
+    return {
+      created_at: timestamp,
+      created_by: user,
+      updated_at: timestamp,
+      updated_by: user,
+    };
+  }
+
+  async createCategory({ category_type, name, description }: { category_type: CategoryType; name: string; description?: string | null }) {
     try {
       const tableName = this.tables[category_type];
       const result = await this.db
@@ -53,8 +68,8 @@ export class CategoryDataSource {
         .values({
           id: nanoid(),
           name,
-          created_by: this.sessionUser?.name,
-          updated_by: this.sessionUser?.name,
+          description: description || null,
+          ...this.createAuditFields(),
         })
         .returning()
         .get();
@@ -64,6 +79,7 @@ export class CategoryDataSource {
         category: {
           id,
           name: category_name,
+          description: result.description || null,
           category_type,
         },
       };
@@ -87,13 +103,23 @@ export class CategoryDataSource {
     }
   }
 
-  async updateCategory({ category_type, name, id }: { category_type: CategoryType; name: string; id: string }) {
+  async updateCategory({
+    category_type,
+    name,
+    id,
+    description,
+  }: {
+    category_type: CategoryType;
+    name: string;
+    id: string;
+    description?: string | null;
+  }) {
     try {
       const tableName = this.tables[category_type];
       const updateData = {
         name,
-        updated_at: new Date(),
-        updated_by: this.sessionUser?.name,
+        description: description || null,
+        ...this.UpdateAuditFields(),
       };
       const result = await this.db.update(tableName).set(updateData).where(eq(tableName.id, id)).returning().get();
 
@@ -111,6 +137,7 @@ export class CategoryDataSource {
         category: {
           id: category_id,
           name: category_name,
+          description: result.description || null,
           category_type,
         },
       };
@@ -139,8 +166,7 @@ export class CategoryDataSource {
       const tableName = this.tables[category_type];
       const updateData = {
         is_disabled: true,
-        updated_at: new Date(),
-        updated_by: this.sessionUser?.name,
+        ...this.UpdateAuditFields(),
       };
       const result = await this.db.update(tableName).set(updateData).where(eq(tableName.id, id)).returning().get();
 
@@ -204,10 +230,12 @@ export class CategoryDataSource {
       return (result as Category[]).map((categoryData: Category) => ({
         id: categoryData.id,
         name: categoryData.name,
+        description: categoryData.description || null,
         created_at: categoryData.created_at,
         created_by: categoryData.created_by,
         updated_at: categoryData.updated_at,
         updated_by: categoryData.updated_by,
+        is_disabled: categoryData.is_disabled,
       }));
     } catch (error) {
       console.error("Category query error", error);

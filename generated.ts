@@ -32,7 +32,9 @@ export type Category = {
   __typename?: "Category";
   created_at: Scalars["DateTime"]["output"];
   created_by: Scalars["String"]["output"];
+  description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
+  is_disabled: Scalars["Boolean"]["output"];
   name: Scalars["String"]["output"];
   updated_at: Scalars["DateTime"]["output"];
   updated_by: Scalars["String"]["output"];
@@ -52,6 +54,7 @@ export type CategoryResponse = {
 export type CategorySuccessResponse = {
   __typename?: "CategorySuccessResponse";
   category_type: CategoryType;
+  description?: Maybe<Scalars["String"]["output"]>;
   id: Scalars["ID"]["output"];
   name: Scalars["String"]["output"];
 };
@@ -69,23 +72,20 @@ export type ChangePasswordInput = {
 };
 
 export enum ColumnName {
-  Address = "address",
-  City = "city",
-  Country = "country",
   Email = "email",
   EmpCode = "emp_code",
+  FirstName = "first_name",
   Id = "id",
   IsDisabled = "is_disabled",
   IsVerified = "is_verified",
-  Name = "name",
+  LastName = "last_name",
   Phone = "phone",
   Role = "role",
-  State = "state",
-  Zipcode = "zipcode",
 }
 
 export type CreateCategoryInput = {
   category_type: CategoryType;
+  description?: InputMaybe<Scalars["String"]["input"]>;
   name: Scalars["String"]["input"];
 };
 
@@ -126,28 +126,68 @@ export type EditUserInput = {
   address?: InputMaybe<Scalars["String"]["input"]>;
   city?: InputMaybe<Scalars["String"]["input"]>;
   country?: InputMaybe<Scalars["String"]["input"]>;
+  date_of_birth?: InputMaybe<Scalars["DateTime"]["input"]>;
   date_of_joining?: InputMaybe<Scalars["DateTime"]["input"]>;
   date_of_leaving?: InputMaybe<Scalars["DateTime"]["input"]>;
   department_id?: InputMaybe<Scalars["String"]["input"]>;
   designation_id?: InputMaybe<Scalars["String"]["input"]>;
   email: Scalars["String"]["input"];
+  emergency_contact_details?: InputMaybe<EmergencyContactDetailsInput>;
   emp_code?: InputMaybe<Scalars["String"]["input"]>;
+  employee_photo_url?: InputMaybe<Scalars["String"]["input"]>;
+  employment_type?: InputMaybe<EmploymentType>;
+  first_name: Scalars["String"]["input"];
   force_password_change?: InputMaybe<Scalars["Boolean"]["input"]>;
+  gender?: InputMaybe<Gender>;
+  hr_and_compliance?: InputMaybe<HrAndComplianceInput>;
   id: Scalars["ID"]["input"];
   is_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
-  name: Scalars["String"]["input"];
+  last_name: Scalars["String"]["input"];
+  marital_status?: InputMaybe<MaritalStatus>;
+  payroll_details?: InputMaybe<PayrollDetailsInput>;
+  personal_email?: InputMaybe<Scalars["String"]["input"]>;
   phone: Scalars["String"]["input"];
-  role?: InputMaybe<Role>;
+  role: Role;
   state?: InputMaybe<Scalars["String"]["input"]>;
+  work_location?: InputMaybe<WorkLocation>;
   zipcode?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type EditUserResponse = {
   __typename?: "EditUserResponse";
   success: Scalars["Boolean"]["output"];
-  user?: Maybe<UserSuccessResponse>;
+  user?: Maybe<UserResponse>;
 };
+
+export type EmergencyContactDetails = {
+  __typename?: "EmergencyContactDetails";
+  email?: Maybe<Scalars["String"]["output"]>;
+  name?: Maybe<Scalars["String"]["output"]>;
+  phone?: Maybe<Scalars["String"]["output"]>;
+  relationship?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type EmergencyContactDetailsInput = {
+  email?: InputMaybe<Scalars["String"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  phone?: InputMaybe<Scalars["String"]["input"]>;
+  relationship?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export enum EmploymentType {
+  Contract = "CONTRACT",
+  FullTime = "FULL_TIME",
+  Intern = "INTERN",
+  PartTime = "PART_TIME",
+}
+
+export enum Gender {
+  Female = "FEMALE",
+  Male = "MALE",
+  Other = "OTHER",
+  PreferNotToSay = "PREFER_NOT_TO_SAY",
+}
 
 export type GenericCategoryResponse = {
   __typename?: "GenericCategoryResponse";
@@ -161,6 +201,21 @@ export type GenericCategoryResponse = {
   updated_by: Scalars["String"]["output"];
 };
 
+export type HrAndCompliance = {
+  __typename?: "HRAndCompliance";
+  aadhar_number?: Maybe<Scalars["String"]["output"]>;
+  pan_number?: Maybe<Scalars["String"]["output"]>;
+  passport_number?: Maybe<Scalars["String"]["output"]>;
+  visa_status?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type HrAndComplianceInput = {
+  aadhar_number?: InputMaybe<Scalars["String"]["input"]>;
+  pan_number?: InputMaybe<Scalars["String"]["input"]>;
+  passport_number?: InputMaybe<Scalars["String"]["input"]>;
+  visa_status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type LoginInput = {
   email: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
@@ -170,13 +225,20 @@ export type LoginResponse = {
   __typename?: "LoginResponse";
   success: Scalars["Boolean"]["output"];
   token?: Maybe<Scalars["String"]["output"]>;
-  user?: Maybe<UserSuccessResponse>;
+  user?: Maybe<UserResponse>;
 };
 
 export type LogoutResponse = {
   __typename?: "LogoutResponse";
   success: Scalars["Boolean"]["output"];
 };
+
+export enum MaritalStatus {
+  Divorced = "DIVORCED",
+  Married = "MARRIED",
+  Single = "SINGLE",
+  Widowed = "WIDOWED",
+}
 
 export type Mutation = {
   __typename?: "Mutation";
@@ -238,6 +300,21 @@ export type PaginatedUsersInputs = {
   sort_by?: InputMaybe<Sort_By>;
 };
 
+export type PayrollDetails = {
+  __typename?: "PayrollDetails";
+  bank_account_number?: Maybe<Scalars["String"]["output"]>;
+  bank_name?: Maybe<Scalars["String"]["output"]>;
+  ifsc_code?: Maybe<Scalars["String"]["output"]>;
+  pf_number?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type PayrollDetailsInput = {
+  bank_account_number?: InputMaybe<Scalars["String"]["input"]>;
+  bank_name?: InputMaybe<Scalars["String"]["input"]>;
+  ifsc_code?: InputMaybe<Scalars["String"]["input"]>;
+  pf_number?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type Query = {
   __typename?: "Query";
   adminKvAsset?: Maybe<AdminKvAsset>;
@@ -288,19 +365,15 @@ export enum Sort_By {
 }
 
 export type SignUpInput = {
-  address?: InputMaybe<Scalars["String"]["input"]>;
-  city?: InputMaybe<Scalars["String"]["input"]>;
-  country?: InputMaybe<Scalars["String"]["input"]>;
-  date_of_joining?: InputMaybe<Scalars["DateTime"]["input"]>;
-  department_id: Scalars["String"]["input"];
-  designation_id: Scalars["String"]["input"];
   email: Scalars["String"]["input"];
-  name: Scalars["String"]["input"];
+  emp_code?: InputMaybe<Scalars["String"]["input"]>;
+  first_name: Scalars["String"]["input"];
+  force_password_change: Scalars["Boolean"]["input"];
+  is_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
+  last_name: Scalars["String"]["input"];
   password: Scalars["String"]["input"];
   phone: Scalars["String"]["input"];
   role: Role;
-  state?: InputMaybe<Scalars["String"]["input"]>;
-  zipcode?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type SignUpResponse = {
@@ -316,7 +389,9 @@ export enum Sort {
 
 export type UpdateCategoryInput = {
   category_type: CategoryType;
+  description?: InputMaybe<Scalars["String"]["input"]>;
   id: Scalars["ID"]["input"];
+  is_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   name: Scalars["String"]["input"];
 };
 
@@ -326,12 +401,13 @@ export type User = {
   created_by: Scalars["String"]["output"];
   email: Scalars["String"]["output"];
   emp_code: Scalars["String"]["output"];
+  first_name: Scalars["String"]["output"];
   force_password_change: Scalars["Boolean"]["output"];
   id: Scalars["ID"]["output"];
   is_disabled: Scalars["Boolean"]["output"];
   is_verified: Scalars["Boolean"]["output"];
   last_login_at?: Maybe<Scalars["DateTime"]["output"]>;
-  name: Scalars["String"]["output"];
+  last_name: Scalars["String"]["output"];
   password: Scalars["String"]["output"];
   phone: Scalars["String"]["output"];
   profile?: Maybe<UserProfile>;
@@ -362,17 +438,27 @@ export type UserProfile = {
   country?: Maybe<Scalars["String"]["output"]>;
   created_at: Scalars["DateTime"]["output"];
   created_by: Scalars["String"]["output"];
+  date_of_birth?: Maybe<Scalars["DateTime"]["output"]>;
   date_of_joining?: Maybe<Scalars["DateTime"]["output"]>;
   date_of_leaving?: Maybe<Scalars["DateTime"]["output"]>;
   department: Department;
   department_id: Scalars["String"]["output"];
   designation: Designation;
   designation_id: Scalars["String"]["output"];
+  emergency_contact_details?: Maybe<EmergencyContactDetails>;
+  employee_photo_url?: Maybe<Scalars["String"]["output"]>;
+  employment_type: EmploymentType;
+  gender?: Maybe<Gender>;
+  hr_and_compliance?: Maybe<HrAndCompliance>;
   id: Scalars["ID"]["output"];
+  marital_status?: Maybe<MaritalStatus>;
+  payroll_details?: Maybe<PayrollDetails>;
+  personal_email?: Maybe<Scalars["String"]["output"]>;
   state?: Maybe<Scalars["String"]["output"]>;
   updated_at: Scalars["DateTime"]["output"];
   updated_by: Scalars["String"]["output"];
   user_id: Scalars["String"]["output"];
+  work_location: WorkLocation;
   zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -381,11 +467,21 @@ export type UserProfileResponse = {
   address?: Maybe<Scalars["String"]["output"]>;
   city?: Maybe<Scalars["String"]["output"]>;
   country?: Maybe<Scalars["String"]["output"]>;
+  date_of_birth?: Maybe<Scalars["DateTime"]["output"]>;
   date_of_joining?: Maybe<Scalars["DateTime"]["output"]>;
   date_of_leaving?: Maybe<Scalars["DateTime"]["output"]>;
-  department: Department;
-  designation: Designation;
+  department?: Maybe<Department>;
+  designation?: Maybe<Designation>;
+  emergency_contact_details?: Maybe<EmergencyContactDetails>;
+  employee_photo_url?: Maybe<Scalars["String"]["output"]>;
+  employment_type?: Maybe<EmploymentType>;
+  gender?: Maybe<Gender>;
+  hr_and_compliance?: Maybe<HrAndCompliance>;
+  marital_status?: Maybe<MaritalStatus>;
+  payroll_details?: Maybe<PayrollDetails>;
+  personal_email?: Maybe<Scalars["String"]["output"]>;
   state?: Maybe<Scalars["String"]["output"]>;
+  work_location?: Maybe<WorkLocation>;
   zipcode?: Maybe<Scalars["String"]["output"]>;
 };
 
@@ -395,12 +491,13 @@ export type UserResponse = {
   created_by: Scalars["String"]["output"];
   email: Scalars["String"]["output"];
   emp_code: Scalars["String"]["output"];
+  first_name: Scalars["String"]["output"];
   force_password_change: Scalars["Boolean"]["output"];
   id: Scalars["ID"]["output"];
   is_disabled: Scalars["Boolean"]["output"];
   is_verified: Scalars["Boolean"]["output"];
   last_login_at?: Maybe<Scalars["DateTime"]["output"]>;
-  name: Scalars["String"]["output"];
+  last_name: Scalars["String"]["output"];
   phone: Scalars["String"]["output"];
   profile?: Maybe<UserProfile>;
   role: Role;
@@ -412,12 +509,13 @@ export type UserSuccessResponse = {
   __typename?: "UserSuccessResponse";
   email: Scalars["String"]["output"];
   emp_code: Scalars["String"]["output"];
+  first_name: Scalars["String"]["output"];
+  force_password_change: Scalars["Boolean"]["output"];
   id: Scalars["ID"]["output"];
   is_disabled: Scalars["Boolean"]["output"];
   is_verified: Scalars["Boolean"]["output"];
-  name: Scalars["String"]["output"];
+  last_name: Scalars["String"]["output"];
   phone: Scalars["String"]["output"];
-  profile?: Maybe<UserProfileResponse>;
   role: Role;
 };
 
@@ -426,6 +524,12 @@ export type UsersConnection = {
   edges: Array<UserEdge>;
   pageInfo: PageInfo;
 };
+
+export enum WorkLocation {
+  Hybrid = "HYBRID",
+  Office = "OFFICE",
+  Remote = "REMOTE",
+}
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
@@ -513,16 +617,25 @@ export type ResolversTypes = {
   Designation: ResolverTypeWrapper<Designation>;
   EditUserInput: EditUserInput;
   EditUserResponse: ResolverTypeWrapper<EditUserResponse>;
+  EmergencyContactDetails: ResolverTypeWrapper<EmergencyContactDetails>;
+  EmergencyContactDetailsInput: EmergencyContactDetailsInput;
+  EmploymentType: EmploymentType;
+  Gender: Gender;
   GenericCategoryResponse: ResolverTypeWrapper<GenericCategoryResponse>;
+  HRAndCompliance: ResolverTypeWrapper<HrAndCompliance>;
+  HRAndComplianceInput: HrAndComplianceInput;
   ID: ResolverTypeWrapper<Scalars["ID"]["output"]>;
   Int: ResolverTypeWrapper<Scalars["Int"]["output"]>;
   JSON: ResolverTypeWrapper<Scalars["JSON"]["output"]>;
   LoginInput: LoginInput;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
   LogoutResponse: ResolverTypeWrapper<LogoutResponse>;
+  MaritalStatus: MaritalStatus;
   Mutation: ResolverTypeWrapper<{}>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   PaginatedUsersInputs: PaginatedUsersInputs;
+  PayrollDetails: ResolverTypeWrapper<PayrollDetails>;
+  PayrollDetailsInput: PayrollDetailsInput;
   Query: ResolverTypeWrapper<{}>;
   Role: Role;
   SORT_BY: Sort_By;
@@ -540,6 +653,7 @@ export type ResolversTypes = {
   UserResponse: ResolverTypeWrapper<UserResponse>;
   UserSuccessResponse: ResolverTypeWrapper<UserSuccessResponse>;
   UsersConnection: ResolverTypeWrapper<UsersConnection>;
+  WorkLocation: WorkLocation;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -560,7 +674,11 @@ export type ResolversParentTypes = {
   Designation: Designation;
   EditUserInput: EditUserInput;
   EditUserResponse: EditUserResponse;
+  EmergencyContactDetails: EmergencyContactDetails;
+  EmergencyContactDetailsInput: EmergencyContactDetailsInput;
   GenericCategoryResponse: GenericCategoryResponse;
+  HRAndCompliance: HrAndCompliance;
+  HRAndComplianceInput: HrAndComplianceInput;
   ID: Scalars["ID"]["output"];
   Int: Scalars["Int"]["output"];
   JSON: Scalars["JSON"]["output"];
@@ -570,6 +688,8 @@ export type ResolversParentTypes = {
   Mutation: {};
   PageInfo: PageInfo;
   PaginatedUsersInputs: PaginatedUsersInputs;
+  PayrollDetails: PayrollDetails;
+  PayrollDetailsInput: PayrollDetailsInput;
   Query: {};
   SignUpInput: SignUpInput;
   SignUpResponse: SignUpResponse;
@@ -598,7 +718,9 @@ export type AdminKvAssetResolvers<
 export type CategoryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Category"] = ResolversParentTypes["Category"]> = {
   created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  is_disabled?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -619,6 +741,7 @@ export type CategorySuccessResponseResolvers<
   ParentType extends ResolversParentTypes["CategorySuccessResponse"] = ResolversParentTypes["CategorySuccessResponse"],
 > = {
   category_type?: Resolver<ResolversTypes["CategoryType"], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -663,7 +786,18 @@ export type EditUserResponseResolvers<
   ParentType extends ResolversParentTypes["EditUserResponse"] = ResolversParentTypes["EditUserResponse"],
 > = {
   success?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes["UserSuccessResponse"]>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type EmergencyContactDetailsResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["EmergencyContactDetails"] = ResolversParentTypes["EmergencyContactDetails"],
+> = {
+  email?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  phone?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  relationship?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -682,6 +816,17 @@ export type GenericCategoryResponseResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type HrAndComplianceResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["HRAndCompliance"] = ResolversParentTypes["HRAndCompliance"],
+> = {
+  aadhar_number?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  pan_number?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  passport_number?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  visa_status?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface JsonScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["JSON"], any> {
   name: "JSON";
 }
@@ -692,7 +837,7 @@ export type LoginResponseResolvers<
 > = {
   success?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   token?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes["UserSuccessResponse"]>, ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes["UserResponse"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -733,6 +878,17 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PayrollDetailsResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["PayrollDetails"] = ResolversParentTypes["PayrollDetails"],
+> = {
+  bank_account_number?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  bank_name?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  ifsc_code?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  pf_number?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
   departments?: Resolver<Maybe<Array<Maybe<ResolversTypes["Category"]>>>, ParentType, ContextType, Partial<QueryDepartmentsArgs>>;
@@ -762,12 +918,13 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   emp_code?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  first_name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   force_password_change?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   is_disabled?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   is_verified?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   last_login_at?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
-  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  last_name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   password?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   profile?: Resolver<Maybe<ResolversTypes["UserProfile"]>, ParentType, ContextType>;
@@ -792,17 +949,27 @@ export type UserProfileResolvers<
   country?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  date_of_birth?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   date_of_joining?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   date_of_leaving?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   department?: Resolver<ResolversTypes["Department"], ParentType, ContextType>;
   department_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   designation?: Resolver<ResolversTypes["Designation"], ParentType, ContextType>;
   designation_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  emergency_contact_details?: Resolver<Maybe<ResolversTypes["EmergencyContactDetails"]>, ParentType, ContextType>;
+  employee_photo_url?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  employment_type?: Resolver<ResolversTypes["EmploymentType"], ParentType, ContextType>;
+  gender?: Resolver<Maybe<ResolversTypes["Gender"]>, ParentType, ContextType>;
+  hr_and_compliance?: Resolver<Maybe<ResolversTypes["HRAndCompliance"]>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
+  marital_status?: Resolver<Maybe<ResolversTypes["MaritalStatus"]>, ParentType, ContextType>;
+  payroll_details?: Resolver<Maybe<ResolversTypes["PayrollDetails"]>, ParentType, ContextType>;
+  personal_email?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   state?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   updated_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   user_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  work_location?: Resolver<ResolversTypes["WorkLocation"], ParentType, ContextType>;
   zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -814,11 +981,21 @@ export type UserProfileResponseResolvers<
   address?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   city?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   country?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  date_of_birth?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   date_of_joining?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   date_of_leaving?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
-  department?: Resolver<ResolversTypes["Department"], ParentType, ContextType>;
-  designation?: Resolver<ResolversTypes["Designation"], ParentType, ContextType>;
+  department?: Resolver<Maybe<ResolversTypes["Department"]>, ParentType, ContextType>;
+  designation?: Resolver<Maybe<ResolversTypes["Designation"]>, ParentType, ContextType>;
+  emergency_contact_details?: Resolver<Maybe<ResolversTypes["EmergencyContactDetails"]>, ParentType, ContextType>;
+  employee_photo_url?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  employment_type?: Resolver<Maybe<ResolversTypes["EmploymentType"]>, ParentType, ContextType>;
+  gender?: Resolver<Maybe<ResolversTypes["Gender"]>, ParentType, ContextType>;
+  hr_and_compliance?: Resolver<Maybe<ResolversTypes["HRAndCompliance"]>, ParentType, ContextType>;
+  marital_status?: Resolver<Maybe<ResolversTypes["MaritalStatus"]>, ParentType, ContextType>;
+  payroll_details?: Resolver<Maybe<ResolversTypes["PayrollDetails"]>, ParentType, ContextType>;
+  personal_email?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   state?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  work_location?: Resolver<Maybe<ResolversTypes["WorkLocation"]>, ParentType, ContextType>;
   zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -831,12 +1008,13 @@ export type UserResponseResolvers<
   created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   emp_code?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  first_name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   force_password_change?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   is_disabled?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   is_verified?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   last_login_at?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
-  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  last_name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   profile?: Resolver<Maybe<ResolversTypes["UserProfile"]>, ParentType, ContextType>;
   role?: Resolver<ResolversTypes["Role"], ParentType, ContextType>;
@@ -851,12 +1029,13 @@ export type UserSuccessResponseResolvers<
 > = {
   email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   emp_code?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  first_name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  force_password_change?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   is_disabled?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   is_verified?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  last_name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  profile?: Resolver<Maybe<ResolversTypes["UserProfileResponse"]>, ParentType, ContextType>;
   role?: Resolver<ResolversTypes["Role"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -879,12 +1058,15 @@ export type Resolvers<ContextType = any> = {
   Department?: DepartmentResolvers<ContextType>;
   Designation?: DesignationResolvers<ContextType>;
   EditUserResponse?: EditUserResponseResolvers<ContextType>;
+  EmergencyContactDetails?: EmergencyContactDetailsResolvers<ContextType>;
   GenericCategoryResponse?: GenericCategoryResponseResolvers<ContextType>;
+  HRAndCompliance?: HrAndComplianceResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   LoginResponse?: LoginResponseResolvers<ContextType>;
   LogoutResponse?: LogoutResponseResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  PayrollDetails?: PayrollDetailsResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SignUpResponse?: SignUpResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

@@ -14,7 +14,7 @@ export const designation = sqliteTable(
       .notNull(),
     created_by: text("created_by").notNull(),
     updated_by: text("updated_by").notNull(),
-    is_disabled: integer("is_disabled", { mode: "boolean" }).default(false),
+    is_disabled: integer("is_disabled", { mode: "boolean" }).default(false).notNull(),
   },
   (table) => [index("idx_designation_name").on(table.name)],
 );

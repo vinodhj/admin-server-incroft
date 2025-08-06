@@ -8,6 +8,7 @@ import { KvStorageDataSource } from "@src/datasources/kv-storage";
 import { Role } from "db/schema/user";
 import { CategoryServiceAPI } from "./category-service";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
+import { EmployeeCodeServiceAPI } from "./employee-code-service";
 
 export type SessionUserType = {
   id: string;
@@ -27,19 +28,23 @@ export interface APIs {
   userAPI: UserServiceAPI;
   kvStorageAPI: KvStorageServiceAPI;
   categoryAPI: CategoryServiceAPI;
+  employeeCodeAPI: EmployeeCodeServiceAPI;
 }
 
 /**
  * Factory function to create API/service instances.
  */
 export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
+  // Employee Code Service API
+  const employeeCodeAPI = new EmployeeCodeServiceAPI(env);
+
   // KV Storage Service API
   const kvStorageDataSource = new KvStorageDataSource(env.KV_INCROFT_JWT_AUTH, env.ENVIRONMENT);
   const kvStorageAPI = new KvStorageServiceAPI(kvStorageDataSource);
 
   // Auth Service API
   const authDataSource = new AuthDataSource({ db, kvStorageDataSource, sessionUser });
-  const authAPI = new AuthServiceAPI({ authDataSource, jwtSecret: env.JWT_SECRET, sessionUser });
+  const authAPI = new AuthServiceAPI({ authDataSource, jwtSecret: env.JWT_SECRET, sessionUser, employeeCodeAPI });
 
   // User Service API
   const userDataSource = new UserDataSource({ db, sessionUser });
@@ -49,5 +54,5 @@ export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
   const categoryDataSource = new CategoryDataSource({ db, sessionUser });
   const categoryAPI = new CategoryServiceAPI({ categoryDataSource, sessionUser });
 
-  return { authAPI, userAPI, kvStorageAPI, categoryAPI };
+  return { authAPI, userAPI, kvStorageAPI, categoryAPI, employeeCodeAPI };
 };

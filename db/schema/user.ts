@@ -11,7 +11,8 @@ export const user = sqliteTable(
   {
     id: text("id").primaryKey(), // nano id
     emp_code: text("emp_code").unique().notNull(),
-    name: text("name").notNull(),
+    first_name: text("first_name").notNull(),
+    last_name: text("last_name").notNull(),
     email: text("email").unique().notNull(),
     password: text("password").notNull(),
     role: text("role", { enum: ["ADMIN", "MANAGER", "VIEWER"] })
@@ -27,9 +28,9 @@ export const user = sqliteTable(
       .notNull(),
     created_by: text("created_by").notNull(),
     updated_by: text("updated_by").notNull(),
-    force_password_change: integer("force_password_change", { mode: "boolean" }).default(false),
-    is_verified: integer("is_verified", { mode: "boolean" }).default(false),
-    is_disabled: integer("is_disabled", { mode: "boolean" }).default(false),
+    force_password_change: integer("force_password_change", { mode: "boolean" }).default(false).notNull(),
+    is_verified: integer("is_verified", { mode: "boolean" }).default(false).notNull(),
+    is_disabled: integer("is_disabled", { mode: "boolean" }).default(false).notNull(),
   },
   (table) => [
     index("idx_email").on(table.email),

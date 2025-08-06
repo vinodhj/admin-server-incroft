@@ -1,6 +1,6 @@
 import { DrizzleD1Database } from "drizzle-orm/d1";
 import { ChangePasswordInput, LoginInput, SignUpInput } from "generated";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { nanoid } from "nanoid";
 import { Role, user } from "db/schema/user";
@@ -28,30 +28,77 @@ export class AuthDataSource {
     this.sessionUser = sessionUser ?? null;
   }
 
+  /**
+   * Create audit fields using auto-generated User type
+   */
+  private UpdateAuditFields() {
+    return {
+      updated_at: new Date(),
+      updated_by: this.sessionUser?.name ?? "SYSTEM",
+    };
+  }
+
+  private createAuditFields() {
+    const timestamp = new Date();
+    const user = this.sessionUser?.name ?? "SYSTEM";
+
+    return {
+      created_at: timestamp,
+      created_by: user,
+      updated_at: timestamp,
+      updated_by: user,
+    };
+  }
+
   async signUp(input: SignUpInput) {
     try {
       const hashedPassword = await bcrypt.hash(input.password, 10);
+      let role = Role.Viewer;
+      if (input.role === "ADMIN") {
+        role = Role.Admin;
+      } else if (input.role === "MANAGER") {
+        role = Role.Manager;
+      }
+
+      // Ensure required fields are not undefined
+      if (!input.first_name || !input.last_name || !input.email || !input.phone || !input.emp_code) {
+        throw new GraphQLError("Missing required user fields", {
+          extensions: {
+            code: "BAD_USER_INPUT",
+          },
+        });
+      }
 
       const result = await this.db
         .insert(user)
         .values({
           id: nanoid(),
-          name: input.name,
+          first_name: input.first_name,
+          last_name: input.last_name,
           email: input.email,
           phone: input.phone,
           password: hashedPassword,
-          role: input.role === "ADMIN" ? Role.Admin : Role.User,
-          address: input.address ? input.address : null,
-          city: input.city ? input.city : null,
-          state: input.state ? input.state : null,
-          country: input.country ? input.country : null,
-          zipcode: input.zipcode ? input.zipcode : null,
-          created_by: this.sessionUser?.name ?? "ADMIN", // currently admin only able to create user
-          updated_by: this.sessionUser?.name ?? "ADMIN", // currently admin only able to update user
+          emp_code: input.emp_code,
+          role,
+          last_login_at: null,
+          force_password_change: input.force_password_change ?? false,
+          is_verified: false,
+          is_disabled: false,
+          ...this.createAuditFields(),
         })
         .returning()
         .get();
+
+      if (!result) {
+        throw new GraphQLError("Failed to create user", {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+          },
+        });
+      }
+
       const { password, ...userWithoutPassword } = result;
+
       return {
         success: true,
         user: {
@@ -96,6 +143,17 @@ export class AuthDataSource {
           },
         });
       }
+
+      // Update last login time
+      await this.db
+        .update(user)
+        .set({
+          last_login_at: new Date(),
+          ...this.UpdateAuditFields(),
+        })
+        .where(eq(user.id, result.id))
+        .returning()
+        .get();
 
       const { password, ...userWithoutPassword } = result;
 
@@ -176,7 +234,7 @@ export class AuthDataSource {
         .update(user)
         .set({
           password: hashedNewPassword,
-          updated_at: new Date(),
+          ...this.UpdateAuditFields(),
         })
         .where(and(eq(user.id, id)))
         .returning()
@@ -188,6 +246,26 @@ export class AuthDataSource {
     } catch (error) {
       console.error(`Error updating password for user ${id}:`, error);
       return false;
+    }
+  }
+
+  async getTotalEmployeeCount(): Promise<number> {
+    try {
+      const result = await this.db.select({ count: count() }).from(user).execute();
+
+      if (!result || result.length === 0) {
+        return 0;
+      }
+
+      return result[0].count;
+    } catch (error) {
+      console.error("Error getting total employee count:", error);
+      throw new GraphQLError("Failed to get total employee count", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+      });
     }
   }
 }

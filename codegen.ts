@@ -7,6 +7,7 @@ const config: CodegenConfig = {
     ["http://localhost:3500/graphql"]: {
       headers: {
         "X-Project-Token": process.env.PROJECT_TOKEN || "",
+        Authorization: `Bearer ${process.env.ADMIN_TOKEN || ""}`,
       },
     },
   },

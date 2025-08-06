@@ -5,6 +5,7 @@ import { addCORSHeaders } from "@src/cors-headers";
 import { APIs, createAPIs, SessionUserType } from "@src/services";
 import { Role } from "db/schema/user";
 import { SecurityMiddleware } from "./security-middleware";
+import { mapRole } from "@src/datasources/utils";
 
 export interface YogaInitialContext {
   jwtSecret: string;
@@ -47,18 +48,16 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
       // Extract access token from Authorization header
       const accessToken = getAccessToken(authorization);
       let sessionUser: SessionUserType = null;
-
       // If access token is provided, verify it
       if (accessToken) {
         // Validate JWT token
         const jwtVerifiedUser = await securityMiddleware.verifyJwtToken(accessToken, env.JWT_SECRET, env);
 
         // Create session user if all required fields are present
-
         if (jwtVerifiedUser) {
           sessionUser = {
             id: jwtVerifiedUser.id,
-            role: jwtVerifiedUser.role === "ADMIN" ? Role.Admin : Role.Viewer,
+            role: mapRole(jwtVerifiedUser.role),
             email: jwtVerifiedUser.email,
             name: jwtVerifiedUser.name,
           };

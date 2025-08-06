@@ -32,16 +32,16 @@ export class CategoryServiceAPI {
     // Clear cache for this category type when creating a new category
     categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
-    const { category_type, name } = input;
-    return await this.categoryDataSource.createCategory(category_type, name);
+    const { category_type, name, description } = input;
+    return await this.categoryDataSource.createCategory({ category_type, name, description });
   }
 
   async updateCategory(input: UpdateCategoryInput): Promise<CategoryResponse> {
     // Clear cache for this category type when updating a category
     categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
-    const { category_type, id, name } = input;
-    return await this.categoryDataSource.updateCategory({ category_type, name, id });
+    const { category_type, id, name, description } = input;
+    return await this.categoryDataSource.updateCategory({ category_type, name, id, description });
   }
 
   async deleteCategory(input: DeleteCategoryInput): Promise<boolean> {

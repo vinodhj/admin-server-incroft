@@ -7,29 +7,47 @@ import { changePasswordValidators } from "@src/services/helper/changePasswordVal
 import { GraphQLError } from "graphql";
 import jwt from "jsonwebtoken";
 import { SessionUserType } from ".";
+import { EmployeeCodeServiceAPI } from "./employee-code-service";
 
 export class AuthServiceAPI {
   private readonly authDataSource: AuthDataSource;
   private readonly jwtSecret: string;
   private readonly sessionUser: SessionUserType;
+  private readonly employeeCodeAPI: EmployeeCodeServiceAPI;
 
   constructor({
     authDataSource,
     jwtSecret,
     sessionUser,
+    employeeCodeAPI,
   }: {
     authDataSource: AuthDataSource;
     jwtSecret: string;
     sessionUser?: SessionUserType;
+    employeeCodeAPI: EmployeeCodeServiceAPI;
   }) {
     this.authDataSource = authDataSource;
     this.jwtSecret = jwtSecret;
     this.sessionUser = sessionUser ?? null;
+    this.employeeCodeAPI = employeeCodeAPI;
   }
 
   async signUp(input: SignUpInput): Promise<SignUpResponse> {
     validateEmailAndPassword(input.email, input.password);
-    return await this.authDataSource.signUp(input);
+
+    // Get total employee count for sequential numbering
+    const totalCount = await this.authDataSource.getTotalEmployeeCount();
+
+    // Generate employee code
+    const employeeCode = this.employeeCodeAPI.generateForSignup(totalCount, "", "");
+
+    //  Add employee code to input
+    const signUpData = {
+      ...input,
+      emp_code: employeeCode,
+    };
+
+    return await this.authDataSource.signUp(signUpData);
   }
 
   async login(input: LoginInput): Promise<LoginResponse> {
@@ -40,7 +58,7 @@ export class AuthServiceAPI {
     const tokenPayload: TokenPayload = {
       id: result.user.id,
       email: result.user.email,
-      name: result.user.name,
+      name: result.user.first_name + " " + result.user.last_name,
       role: result.user.role,
       tokenVersion: result.token_version,
     };
@@ -49,6 +67,9 @@ export class AuthServiceAPI {
     return {
       token,
       ...result,
+      user: {
+        ...result.user,
+      },
     };
   }
 

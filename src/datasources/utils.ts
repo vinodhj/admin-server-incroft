@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { Role } from "generated";
 import { GraphQLError } from "graphql";
 
 export async function validateCurrentPassword(currentPassword: string, storedPassword: string) {
@@ -28,4 +29,15 @@ export async function handleError(error: unknown, message: string) {
       error,
     },
   });
+}
+
+export function mapRole(roleString?: string): Role {
+  switch (roleString) {
+    case "ADMIN":
+      return Role.Admin;
+    case "MANAGER":
+      return Role.Manager;
+    default:
+      return Role.Viewer;
+  }
 }

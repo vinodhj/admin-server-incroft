@@ -8,6 +8,8 @@ declare module "cloudflare:test" {
     KV_SYNC_TOKEN: string;
     ALLOWED_ORIGINS: string;
     ENVIRONMENT: string;
+    EMP_CODE_PREFIX: string;
+    EMP_CODE_INCLUDE_YEAR: string;
     TEST_MIGRATIONS: D1Migration[];
   }
 }

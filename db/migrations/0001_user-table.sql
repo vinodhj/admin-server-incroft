@@ -1,7 +1,8 @@
 CREATE TABLE `user` (
 	`id` text PRIMARY KEY NOT NULL,
 	`emp_code` text UNIQUE NOT NULL,
-	`name` text NOT NULL,
+	`first_name` text NOT NULL,
+	`last_name` text NOT NULL,
 	`email` text UNIQUE NOT NULL,
 	`password` text NOT NULL,
 	`role` text NOT NULL,
