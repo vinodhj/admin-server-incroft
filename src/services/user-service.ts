@@ -4,6 +4,7 @@ import { Role } from "db/schema/user";
 import {
   ColumnName,
   DeleteUserInput,
+  DisableUserInput,
   EditUserInput,
   EditUserResponse,
   InputMaybe,
@@ -189,6 +190,16 @@ export class UserServiceAPI {
 
   async deleteUser(input: DeleteUserInput): Promise<boolean> {
     validateUserAccess(this.sessionUser, { id: input.id });
+    const isRoleAdmin = this.sessionUser?.role === Role.Admin;
+
+    // If the user is not an admin, return an empty object
+    if (!isRoleAdmin) {
+      throw new GraphQLError("Only admin can delete users", {
+        extensions: {
+          code: "UNAUTHORIZED_ROLE",
+        },
+      });
+    }
     const deleteResult = await this.userDataSource.deleteUser(input);
     if (deleteResult) {
       // Invalidate cache entries
@@ -196,5 +207,25 @@ export class UserServiceAPI {
       userCache.invalidateByPattern("users:.*");
     }
     return deleteResult;
+  }
+
+  async disableUser(input: DisableUserInput): Promise<boolean> {
+    // Validate access rights
+    const isRoleAdmin = this.sessionUser?.role === Role.Admin;
+
+    // If the user is not an admin, return an empty object
+    if (!isRoleAdmin) {
+      throw new GraphQLError("Only admin can disable/enable users", {
+        extensions: {
+          code: "UNAUTHORIZED_ROLE",
+        },
+      });
+    }
+    const disableResult = await this.userDataSource.disableUser(input);
+    if (disableResult) {
+      // Invalidate cache entries
+      userCache.clear();
+    }
+    return disableResult;
   }
 }

@@ -1,5 +1,14 @@
 import { DrizzleD1Database } from "drizzle-orm/d1";
-import { DeleteUserInput, EditUserInput, PaginatedUsersInputs, Sort, Sort_By, UserByEmailInput, UserByFieldInput } from "generated";
+import {
+  DeleteUserInput,
+  DisableUserInput,
+  EditUserInput,
+  PaginatedUsersInputs,
+  Sort,
+  Sort_By,
+  UserByEmailInput,
+  UserByFieldInput,
+} from "generated";
 import { asc, desc, eq, inArray, like, SQLWrapper, gt, lt } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { Role, user } from "db/schema/user";
@@ -448,6 +457,17 @@ export class UserDataSource {
 
   async deleteUser(input: DeleteUserInput) {
     try {
+      const isRoleAdmin = this.sessionUser?.role === Role.Admin;
+
+      // If the user is not an admin, return an empty object
+      if (!isRoleAdmin) {
+        throw new GraphQLError("Only admin can delete users", {
+          extensions: {
+            code: "UNAUTHORIZED_ROLE",
+          },
+        });
+      }
+
       const deleted = await this.db.delete(user).where(eq(user.id, input.id)).execute();
       if (deleted && deleted.success) {
         if (deleted.meta.changed_db) {
@@ -466,6 +486,53 @@ export class UserDataSource {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
           error: error.message ? error.message : error,
+        },
+      });
+    }
+  }
+
+  async disableUser(input: DisableUserInput) {
+    try {
+      const updateData = {
+        is_disabled: input.is_disabled,
+        ...this.UpdateAuditFields(),
+      };
+      const result = await this.db
+        .update(user)
+        .set(updateData)
+        .where(
+          inArray(
+            user.id,
+            input.ids.map((id) => id.trim()),
+          ),
+        )
+        .returning()
+        .execute();
+
+      if (!result || result.length === 0) {
+        throw new GraphQLError("No users found to disable/enable", {
+          extensions: {
+            code: "NOT_FOUND",
+          },
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.log("error", error);
+      if (error instanceof GraphQLError || error instanceof Error) {
+        //to throw GraphQLError/original error
+        throw new GraphQLError(`Failed to disable/enable user: ${error.message ? "- " + error.message : ""}`, {
+          extensions: {
+            code: "INTERNAL_SERVER_ERROR",
+            error: error.message,
+          },
+        });
+      }
+      throw new GraphQLError("Failed to disable/enable user due to an unexpected error", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error,
         },
       });
     }

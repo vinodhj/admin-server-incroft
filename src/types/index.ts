@@ -431,6 +431,11 @@ export const typeDefs = gql`
     pageInfo: PageInfo!
   }
 
+  input DisableUserInput {
+    ids: [ID!]!
+    is_disabled: Boolean!
+  }
+
   type Query {
     userByEmail(input: UserByEmailInput!): UserResponse
     userByfield(input: UserByFieldInput!): [UserResponse]
@@ -450,6 +455,7 @@ export const typeDefs = gql`
     login(input: LoginInput!): LoginResponse!
     editUser(input: EditUserInput!): EditUserResponse!
     deleteUser(input: DeleteUserInput!): Boolean!
+    disableUser(input: DisableUserInput!): Boolean!
     changePassword(input: ChangePasswordInput!): Boolean!
     logout: LogoutResponse!
 

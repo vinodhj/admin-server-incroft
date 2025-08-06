@@ -122,6 +122,11 @@ export type Designation = {
   updated_by: Scalars["String"]["output"];
 };
 
+export type DisableUserInput = {
+  ids: Array<Scalars["ID"]["input"]>;
+  is_disabled: Scalars["Boolean"]["input"];
+};
+
 export type EditUserInput = {
   address?: InputMaybe<Scalars["String"]["input"]>;
   city?: InputMaybe<Scalars["String"]["input"]>;
@@ -246,6 +251,7 @@ export type Mutation = {
   createCategory: CategoryResponse;
   deleteCategory: Scalars["Boolean"]["output"];
   deleteUser: Scalars["Boolean"]["output"];
+  disableUser: Scalars["Boolean"]["output"];
   editUser: EditUserResponse;
   login: LoginResponse;
   logout: LogoutResponse;
@@ -267,6 +273,10 @@ export type MutationDeleteCategoryArgs = {
 
 export type MutationDeleteUserArgs = {
   input: DeleteUserInput;
+};
+
+export type MutationDisableUserArgs = {
+  input: DisableUserInput;
 };
 
 export type MutationEditUserArgs = {
@@ -615,6 +625,7 @@ export type ResolversTypes = {
   DeleteUserInput: DeleteUserInput;
   Department: ResolverTypeWrapper<Department>;
   Designation: ResolverTypeWrapper<Designation>;
+  DisableUserInput: DisableUserInput;
   EditUserInput: EditUserInput;
   EditUserResponse: ResolverTypeWrapper<EditUserResponse>;
   EmergencyContactDetails: ResolverTypeWrapper<EmergencyContactDetails>;
@@ -672,6 +683,7 @@ export type ResolversParentTypes = {
   DeleteUserInput: DeleteUserInput;
   Department: Department;
   Designation: Designation;
+  DisableUserInput: DisableUserInput;
   EditUserInput: EditUserInput;
   EditUserResponse: EditUserResponse;
   EmergencyContactDetails: EmergencyContactDetails;
@@ -859,6 +871,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   >;
   deleteCategory?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteCategoryArgs, "input">>;
   deleteUser?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDeleteUserArgs, "input">>;
+  disableUser?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType, RequireFields<MutationDisableUserArgs, "input">>;
   editUser?: Resolver<ResolversTypes["EditUserResponse"], ParentType, ContextType, RequireFields<MutationEditUserArgs, "input">>;
   login?: Resolver<ResolversTypes["LoginResponse"], ParentType, ContextType, RequireFields<MutationLoginArgs, "input">>;
   logout?: Resolver<ResolversTypes["LogoutResponse"], ParentType, ContextType>;
