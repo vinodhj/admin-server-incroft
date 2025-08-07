@@ -408,11 +408,18 @@ export const typeDefs = gql`
   }
 
   input PaginatedUsersInputs {
+    emp_code: String
+    name: String
+    email: String
+    phone: String
+    role: Role
+    include_disabled: Boolean = false
+
+    # Pagination and sorting
     first: Int = 10
     after: String
     sort: Sort = DESC
     sort_by: SORT_BY = CREATED_AT
-    include_disabled: Boolean = false
   }
 
   type UserEdge {

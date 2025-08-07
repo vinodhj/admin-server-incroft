@@ -9,7 +9,7 @@ import {
   UserByEmailInput,
   UserByFieldInput,
 } from "generated";
-import { asc, desc, eq, inArray, like, SQLWrapper, gt, lt } from "drizzle-orm";
+import { asc, desc, eq, inArray, like, SQLWrapper, gt, lt, sql, SQL, and, or } from "drizzle-orm";
 import { GraphQLError } from "graphql";
 import { Role, user } from "db/schema/user";
 import { SessionUserType } from "@src/services";
@@ -141,7 +141,7 @@ export class UserDataSource {
   }
 
   async paginatedUsers(input: PaginatedUsersInputs) {
-    const { after, sort_by = Sort_By.UpdatedAt } = input;
+    const { sort_by = Sort_By.UpdatedAt } = input;
     const sort = input.sort === Sort.Asc ? Sort.Asc : Sort.Desc;
 
     // Apply default and maximum page size limits from class constants
@@ -150,15 +150,24 @@ export class UserDataSource {
     const sortField = sort_by === Sort_By.CreatedAt ? user.created_at : user.updated_at;
 
     try {
-      // Use the helper function to parse the cursor date safely
-      const afterDate = this.parseCursorDate(after);
+      // Get where conditions based on input filters
+      const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
+
+      // Get total count of expenses
+      const totalCountResult = await this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(user)
+        .where(whereCondition)
+        .get();
+
+      const totalCount = totalCountResult ? totalCountResult.count : 0;
 
       // Fetch all the user with pagination
       const result = await this.db
         .select()
         .from(user)
         .orderBy(this.sorter(sortField, sort))
-        .where(sort === Sort.Asc ? gt(sortField, afterDate || new Date(0)) : lt(sortField, afterDate || new Date()))
+        .where(whereCondition)
         .limit(first + 1) // Fetch one extra to determine if there are more pages
         .execute();
 
@@ -177,7 +186,7 @@ export class UserDataSource {
         pageInfo: {
           endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
           hasNextPage,
-          totalCount: items.length, // Todo: add total count
+          totalCount,
         },
       };
     } catch (error: any) {
@@ -189,6 +198,60 @@ export class UserDataSource {
         },
       });
     }
+  }
+
+  // Helper to build WHERE conditions for user pagination filtering
+  private buildExpenseWhereCondition(input: PaginatedUsersInputs, sortField: any, sort: Sort): SQL | undefined {
+    const conditions: SQL[] = [];
+
+    const afterDate = this.parseCursorDate(input.after);
+    conditions.push(eq(user.is_disabled, input.include_disabled ?? false));
+    if (sort === Sort.Asc) {
+      conditions.push(gt(sortField, afterDate || new Date(0)));
+    } else {
+      conditions.push(lt(sortField, afterDate || new Date()));
+    }
+
+    // Add filters for scalar fields
+    this.addScalarFilters(conditions, input);
+
+    // Combine all conditions with AND
+    return conditions.length > 1 ? and(...conditions) : conditions[0];
+  }
+
+  // Helper to add scalar filters
+  private addScalarFilters(conditions: SQL[], input: PaginatedUsersInputs): void {
+    const { emp_code, name, email, phone, role } = input;
+
+    // Filter by employee code
+    if (emp_code !== undefined && emp_code !== null) {
+      conditions.push(eq(user.emp_code, emp_code));
+    }
+
+    // Filter by name (first or last)
+    if (name !== undefined && name !== null) {
+      const nameCondition = or(like(user.first_name, `%${name}%`), like(user.last_name, `%${name}%`));
+      if (nameCondition) {
+        conditions.push(nameCondition);
+      }
+    }
+
+    // Filter by email
+    if (email !== undefined && email !== null) {
+      conditions.push(eq(user.email, email));
+    }
+
+    // Filter by phone
+    if (phone !== undefined && phone !== null) {
+      conditions.push(eq(user.phone, phone));
+    }
+
+    // Filter by role
+    if (role !== undefined && role !== null) {
+      const mappedRole = this.mapRole(role);
+      conditions.push(eq(user.role, mappedRole));
+    }
+    // Add any other scalar filters as needed
   }
 
   async users() {

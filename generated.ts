@@ -304,8 +304,13 @@ export type PageInfo = {
 
 export type PaginatedUsersInputs = {
   after?: InputMaybe<Scalars["String"]["input"]>;
+  email?: InputMaybe<Scalars["String"]["input"]>;
+  emp_code?: InputMaybe<Scalars["String"]["input"]>;
   first?: InputMaybe<Scalars["Int"]["input"]>;
   include_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
+  name?: InputMaybe<Scalars["String"]["input"]>;
+  phone?: InputMaybe<Scalars["String"]["input"]>;
+  role?: InputMaybe<Role>;
   sort?: InputMaybe<Sort>;
   sort_by?: InputMaybe<Sort_By>;
 };
