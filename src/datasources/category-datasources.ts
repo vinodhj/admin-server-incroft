@@ -7,6 +7,7 @@ import { department, designation } from "db/schema/";
 
 import { and, eq, inArray, like, Table } from "drizzle-orm";
 import { SQLiteColumn } from "drizzle-orm/sqlite-core";
+import DataLoader from "dataloader";
 
 // Define an interface to extend the Table type with column
 interface CategoryTable extends Table {
@@ -28,6 +29,8 @@ export class CategoryDataSource {
   private readonly MAX_PAGE_SIZE = 100; // Set maximum page size
   private readonly BATCH_SIZE = 50; // Maximum number of IDs to fetch in a single batch
   private readonly tables: { [key in CategoryType]: CategoryTable };
+  private readonly departmentByIdLoader: DataLoader<string, Category | null>;
+  private readonly designationByIdLoader: DataLoader<string, Category | null>;
 
   constructor({ db, sessionUser }: { db: DrizzleD1Database; sessionUser: SessionUserType }) {
     this.db = db;
@@ -36,6 +39,53 @@ export class CategoryDataSource {
       [CategoryType.Department]: department,
       [CategoryType.Designation]: designation,
     };
+
+    // Initialize DataLoaders in datasource
+    this.departmentByIdLoader = new DataLoader(
+      async (ids: readonly string[]) => {
+        try {
+          const departments = await this.categoryBatchByIds(CategoryType.Department, ids as string[]);
+          const departmentMap = new Map(departments.map((d) => [d.id, d]));
+          return ids.map((id) => departmentMap.get(id) || null);
+        } catch (error) {
+          console.error("Error batch loading departments:", error);
+          return ids.map(() => null);
+        }
+      },
+      { maxBatchSize: 50 },
+    );
+
+    this.designationByIdLoader = new DataLoader(
+      async (ids: readonly string[]) => {
+        try {
+          const designations = await this.categoryBatchByIds(CategoryType.Designation, ids as string[]);
+          const designationMap = new Map(designations.map((d) => [d.id, d]));
+          return ids.map((id) => designationMap.get(id) || null);
+        } catch (error) {
+          console.error("Error batch loading designations:", error);
+          return ids.map(() => null);
+        }
+      },
+      { maxBatchSize: 50 },
+    );
+  }
+
+  // Expose loaders (datasource responsibility)
+  getDepartmentByIdLoader() {
+    return this.departmentByIdLoader;
+  }
+
+  getDesignationByIdLoader() {
+    return this.designationByIdLoader;
+  }
+
+  // Helper methods for single ID fetching using DataLoader
+  async getDepartmentById(id: string): Promise<Category | null> {
+    return this.departmentByIdLoader.load(id);
+  }
+
+  async getDesignationById(id: string): Promise<Category | null> {
+    return this.designationByIdLoader.load(id);
   }
 
   /**

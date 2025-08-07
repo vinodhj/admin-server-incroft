@@ -89,15 +89,23 @@ export class UserServiceAPI {
 
   async userProfileById(id: string): Promise<UserProfile | null> {
     validateUserAccess(this.sessionUser, { id });
-    const profile = await this.userDataSource.userProfileById(id);
-    if (!profile) return null;
-    // Ensure department and designation are present
-    return {
-      ...profile,
-      // These will be resolved by nested resolvers
-      department: null as any,
-      designation: null as any,
-    };
+    try {
+      // Use DataLoader for efficient batching
+      const profile = await this.userDataSource.getUserProfileLoader().load(id);
+
+      if (!profile) return null;
+
+      // Ensure department and designation are present for nested resolution
+      return {
+        ...profile,
+        // These will be resolved by nested resolvers
+        department: null as any,
+        designation: null as any,
+      };
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+      throw new Error("Failed to load user profile");
+    }
   }
 
   async userByEmail(input: UserByEmailInput): Promise<UserResponse> {

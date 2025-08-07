@@ -3,7 +3,8 @@ import { APIs } from "@src/services";
 export const UserNestedResolvers = {
   profile: async ({ id }: { id: string }, _: unknown, { apis: { userAPI } }: { apis: APIs }) => {
     try {
-      console.log("Fetching user profile for ID:", id);
+      if (!id) return null;
+      // Use DataLoader through UserAPI
       return await userAPI.userProfileById(id);
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -18,7 +19,7 @@ export const ProfileNestedResolvers = {
       if (!department_id) return null;
 
       // Use DataLoader through CategoryAPI
-      return await categoryAPI.getDepartmentByIdLoader().load(department_id);
+      return await categoryAPI.getDepartmentById(department_id);
     } catch (error) {
       console.error("Error fetching user department:", error);
       throw new Error("Failed to fetch user department");
@@ -29,7 +30,7 @@ export const ProfileNestedResolvers = {
       if (!designation_id) return null;
 
       // Use DataLoader through CategoryAPI
-      return await categoryAPI.getDesignationByIdLoader().load(designation_id);
+      return await categoryAPI.getDesignationById(designation_id);
     } catch (error) {
       console.error("Error fetching user designation:", error);
       throw new Error("Failed to fetch user designation");

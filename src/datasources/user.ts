@@ -21,6 +21,7 @@ export class UserDataSource {
   private readonly db: DrizzleD1Database;
   private readonly sessionUser: SessionUserType;
   private readonly userLoader: DataLoader<string, typeof user.$inferSelect | Error>;
+  private readonly userProfileLoader: DataLoader<string, typeof userProfile.$inferSelect | null>;
 
   // Constants for pagination and batching
   private readonly DEFAULT_PAGE_SIZE = 10;
@@ -40,6 +41,35 @@ export class UserDataSource {
         maxBatchSize: this.BATCH_SIZE, // Set maximum batch size
       },
     );
+
+    // Profile loader - batches profile queries by user_id
+    this.userProfileLoader = new DataLoader(
+      async (userIds: readonly string[]) => {
+        try {
+          const profiles = await this.db
+            .select()
+            .from(userProfile)
+            .where(inArray(userProfile.user_id, userIds as string[]))
+            .execute();
+
+          // Create a map for efficient lookup
+          const profileMap = new Map(profiles.map((p) => [p.user_id, p]));
+
+          // Return profiles in the same order as requested userIds
+          return userIds.map((userId) => profileMap.get(userId) || null);
+        } catch (error) {
+          console.error("Error batch loading profiles:", error);
+          // Return errors for each requested ID
+          return userIds.map(() => null);
+        }
+      },
+      { maxBatchSize: this.BATCH_SIZE },
+    );
+  }
+
+  // Expose DataLoaders for use in nested resolvers
+  getUserProfileLoader() {
+    return this.userProfileLoader;
   }
 
   /**
