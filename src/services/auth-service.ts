@@ -8,6 +8,7 @@ import { GraphQLError } from "graphql";
 import jwt from "jsonwebtoken";
 import { SessionUserType } from ".";
 import { EmployeeCodeServiceAPI } from "./employee-code-service";
+import { userCache } from "@src/cache/in-memory-cache";
 
 export class AuthServiceAPI {
   private readonly authDataSource: AuthDataSource;
@@ -47,7 +48,11 @@ export class AuthServiceAPI {
       emp_code: employeeCode,
     };
 
-    return await this.authDataSource.signUp(signUpData);
+    const result = await this.authDataSource.signUp(signUpData);
+    if (result) {
+      userCache.clear();
+    }
+    return result;
   }
 
   async login(input: LoginInput): Promise<LoginResponse> {

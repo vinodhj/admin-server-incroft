@@ -20,7 +20,8 @@ import { nanoid } from "nanoid";
 export class UserDataSource {
   private readonly db: DrizzleD1Database;
   private readonly sessionUser: SessionUserType;
-  private readonly userLoader: DataLoader<string, typeof user.$inferSelect | Error>;
+
+  private readonly userLoader: DataLoader<string, typeof user.$inferSelect | null>;
   private readonly userProfileLoader: DataLoader<string, typeof userProfile.$inferSelect | null>;
 
   // Constants for pagination and batching
@@ -32,14 +33,24 @@ export class UserDataSource {
     this.db = db;
     this.sessionUser = sessionUser ?? null;
 
+    // User loader - batches user queries by ID
     this.userLoader = new DataLoader(
       async (ids: readonly string[]) => {
-        // batch fetch
-        return this.userByBatchIds(ids as string[]);
+        try {
+          const users = await this.db
+            .select()
+            .from(user)
+            .where(inArray(user.id, ids as string[]))
+            .execute();
+
+          const userMap = new Map(users.map((u) => [u.id, u]));
+          return ids.map((id) => userMap.get(id) || null);
+        } catch (error) {
+          console.error("Error batch loading users:", error);
+          return ids.map(() => null);
+        }
       },
-      {
-        maxBatchSize: this.BATCH_SIZE, // Set maximum batch size
-      },
+      { maxBatchSize: this.BATCH_SIZE },
     );
 
     // Profile loader - batches profile queries by user_id
@@ -52,24 +63,15 @@ export class UserDataSource {
             .where(inArray(userProfile.user_id, userIds as string[]))
             .execute();
 
-          // Create a map for efficient lookup
           const profileMap = new Map(profiles.map((p) => [p.user_id, p]));
-
-          // Return profiles in the same order as requested userIds
           return userIds.map((userId) => profileMap.get(userId) || null);
         } catch (error) {
           console.error("Error batch loading profiles:", error);
-          // Return errors for each requested ID
           return userIds.map(() => null);
         }
       },
       { maxBatchSize: this.BATCH_SIZE },
     );
-  }
-
-  // Expose DataLoaders for use in nested resolvers
-  getUserProfileLoader() {
-    return this.userProfileLoader;
   }
 
   /**
@@ -106,6 +108,25 @@ export class UserDataSource {
     }
   }
 
+  // Expose DataLoaders for use in nested resolvers
+  getUserProfileLoader() {
+    return this.userProfileLoader;
+  }
+
+  // Expose DataLoaders for service layer
+  getUserLoader() {
+    return this.userLoader;
+  }
+
+  // Convenience methods using DataLoaders
+  async getUserById(id: string): Promise<typeof user.$inferSelect | null> {
+    return this.userLoader.load(id);
+  }
+
+  async getProfileByUserId(userId: string): Promise<typeof userProfile.$inferSelect | null> {
+    return this.userProfileLoader.load(userId);
+  }
+
   async userByIds(ids: string[]) {
     try {
       const results = await this.userLoader.loadMany(ids);
@@ -116,7 +137,7 @@ export class UserDataSource {
       results.forEach((result) => {
         if (result instanceof Error) {
           errors.push(result);
-        } else {
+        } else if (result !== null) {
           users.push(result);
         }
       });
@@ -135,33 +156,12 @@ export class UserDataSource {
         pageInfo: {
           endCursor: null,
           hasNextPage: false,
-          totalCount: users.length, // Todo: add total count
+          totalCount: users.length,
         },
       };
     } catch (error) {
       console.error("Failed to load users by ids:", error);
       throw new GraphQLError("Failed to fetch users", {
-        extensions: {
-          code: "INTERNAL_SERVER_ERROR",
-          error,
-        },
-      });
-    }
-  }
-
-  async userByBatchIds(ids: string[]) {
-    try {
-      const result = await this.db.select().from(user).where(inArray(user.id, ids)).execute();
-      if (!result) {
-        return [];
-      }
-
-      // Map results to ensure order matches the requested IDs
-      const userMap = new Map(result.map((u) => [u.id, u]));
-      return ids.map((id) => userMap.get(id) || new Error(`User with ID ${id} not found`));
-    } catch (error) {
-      console.log(error);
-      throw new GraphQLError("Failed to fetch user by batch ids", {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
           error,
@@ -183,7 +183,7 @@ export class UserDataSource {
       // Get where conditions based on input filters
       const whereCondition = this.buildExpenseWhereCondition(input, sortField, sort);
 
-      // Get total count of expenses
+      // Get total count of users
       const totalCountResult = await this.db
         .select({ count: sql<number>`count(*)` })
         .from(user)
@@ -626,21 +626,6 @@ export class UserDataSource {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
           error,
-        },
-      });
-    }
-  }
-
-  async userProfileById(id: string) {
-    try {
-      const result = await this.db.select().from(userProfile).where(eq(userProfile.user_id, id)).get();
-      return result;
-    } catch (error: any) {
-      console.error("Unexpected error:", error);
-      throw new GraphQLError("Failed to get user profile", {
-        extensions: {
-          code: "INTERNAL_SERVER_ERROR",
-          error: error.message ? error.message : error,
         },
       });
     }

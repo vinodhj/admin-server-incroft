@@ -30,6 +30,15 @@ export class UserServiceAPI {
     this.sessionUser = sessionUser ?? null;
   }
 
+  // Delegate DataLoader access to datasource
+  getUserLoader() {
+    return this.userDataSource.getUserLoader();
+  }
+
+  getUserProfileLoader() {
+    return this.userDataSource.getUserProfileLoader();
+  }
+
   async paginatedUsers(
     ids: InputMaybe<string[]> | undefined,
     input: InputMaybe<PaginatedUsersInputs> | undefined,
@@ -90,15 +99,15 @@ export class UserServiceAPI {
   async userProfileById(id: string): Promise<UserProfile | null> {
     validateUserAccess(this.sessionUser, { id });
     try {
-      // Use DataLoader for efficient batching
-      const profile = await this.userDataSource.getUserProfileLoader().load(id);
+      // Use DataLoader through datasource
+      const profile = await this.userDataSource.getProfileByUserId(id);
 
       if (!profile) return null;
 
       // Ensure department and designation are present for nested resolution
       return {
         ...profile,
-        // These will be resolved by nested resolvers
+        // These will be resolved by nested resolvers using CategoryAPI DataLoaders
         department: null as any,
         designation: null as any,
       };
@@ -235,5 +244,9 @@ export class UserServiceAPI {
       userCache.clear();
     }
     return disableResult;
+  }
+
+  async getUserById(id: string): Promise<UserResponse | null> {
+    return this.userDataSource.getUserById(id);
   }
 }
