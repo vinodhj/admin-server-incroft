@@ -5,7 +5,7 @@ import { Category, CategoryType } from "generated";
 import { nanoid } from "nanoid";
 import { department, designation } from "db/schema/";
 
-import { and, eq, like, Table } from "drizzle-orm";
+import { and, eq, inArray, like, Table } from "drizzle-orm";
 import { SQLiteColumn } from "drizzle-orm/sqlite-core";
 
 // Define an interface to extend the Table type with column
@@ -252,6 +252,28 @@ export class CategoryDataSource {
         extensions: {
           code: "INTERNAL_SERVER_ERROR",
           error,
+        },
+      });
+    }
+  }
+
+  async categoryBatchByIds(category_type: CategoryType, ids: string[]): Promise<Category[]> {
+    try {
+      const tableName = this.tables[category_type];
+
+      const result = await this.db
+        .select()
+        .from(tableName)
+        .where(and(inArray(tableName.id, ids), eq(tableName.is_disabled, false)))
+        .execute();
+
+      return result as Category[];
+    } catch (error: any) {
+      console.error("Error in categoryBatchByIds:", error);
+      throw new GraphQLError("Failed to batch fetch categories", {
+        extensions: {
+          code: "INTERNAL_SERVER_ERROR",
+          error: error.message,
         },
       });
     }

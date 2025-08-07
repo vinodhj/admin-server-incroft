@@ -10,14 +10,60 @@ import {
 import { SessionUserType } from ".";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
 import { categoryCache } from "@src/cache/in-memory-cache";
+import DataLoader from "dataloader";
 
 export class CategoryServiceAPI {
   private readonly categoryDataSource: CategoryDataSource;
   private readonly sessionUser: SessionUserType;
+  // DataLoaders for departments and designations
+  private readonly departmentByIdLoader: DataLoader<string, Category | null>;
+  private readonly designationByIdLoader: DataLoader<string, Category | null>;
 
   constructor({ categoryDataSource, sessionUser }: { categoryDataSource: CategoryDataSource; sessionUser: SessionUserType }) {
     this.categoryDataSource = categoryDataSource;
     this.sessionUser = sessionUser;
+
+    // Department loader
+    this.departmentByIdLoader = new DataLoader(
+      async (ids: readonly string[]) => {
+        try {
+          // Batch fetch departments by IDs
+          const departments = await this.categoryDataSource.categoryBatchByIds(CategoryType.Department, ids as string[]);
+
+          const departmentMap = new Map(departments.map((d) => [d.id, d]));
+          return ids.map((id) => departmentMap.get(id) || null);
+        } catch (error) {
+          console.error("Error batch loading departments:", error);
+          return ids.map(() => null);
+        }
+      },
+      { maxBatchSize: 50 },
+    );
+
+    // Designation loader
+    this.designationByIdLoader = new DataLoader(
+      async (ids: readonly string[]) => {
+        try {
+          const designations = await this.categoryDataSource.categoryBatchByIds(CategoryType.Designation, ids as string[]);
+
+          const designationMap = new Map(designations.map((d) => [d.id, d]));
+          return ids.map((id) => designationMap.get(id) || null);
+        } catch (error) {
+          console.error("Error batch loading designations:", error);
+          return ids.map(() => null);
+        }
+      },
+      { maxBatchSize: 50 },
+    );
+  }
+
+  // Expose loaders for nested resolvers
+  getDepartmentByIdLoader() {
+    return this.departmentByIdLoader;
+  }
+
+  getDesignationByIdLoader() {
+    return this.designationByIdLoader;
   }
 
   // Create a more robust cache key generation method

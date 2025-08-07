@@ -1,5 +1,4 @@
 import { APIs } from "@src/services";
-import { CategoryType, Department, Designation } from "generated";
 
 export const UserNestedResolvers = {
   profile: async ({ id }: { id: string }, _: unknown, { apis: { userAPI } }: { apis: APIs }) => {
@@ -16,11 +15,10 @@ export const UserNestedResolvers = {
 export const ProfileNestedResolvers = {
   department: async ({ department_id }: { department_id: string }, _: unknown, { apis: { categoryAPI } }: { apis: APIs }) => {
     try {
-      const category_type = CategoryType.Department;
-      const result = await categoryAPI.category(category_type, { id: department_id });
-      return {
-        ...result[0],
-      } as Department;
+      if (!department_id) return null;
+
+      // Use DataLoader through CategoryAPI
+      return await categoryAPI.getDepartmentByIdLoader().load(department_id);
     } catch (error) {
       console.error("Error fetching user department:", error);
       throw new Error("Failed to fetch user department");
@@ -28,11 +26,10 @@ export const ProfileNestedResolvers = {
   },
   designation: async ({ designation_id }: { designation_id: string }, _: unknown, { apis: { categoryAPI } }: { apis: APIs }) => {
     try {
-      const category_type = CategoryType.Designation;
-      const result = await categoryAPI.category(category_type, { id: designation_id });
-      return {
-        ...result[0],
-      } as Designation;
+      if (!designation_id) return null;
+
+      // Use DataLoader through CategoryAPI
+      return await categoryAPI.getDesignationByIdLoader().load(designation_id);
     } catch (error) {
       console.error("Error fetching user designation:", error);
       throw new Error("Failed to fetch user designation");
