@@ -52,7 +52,7 @@ export class CategoryDataSource {
           return ids.map(() => null);
         }
       },
-      { maxBatchSize: 50 },
+      { maxBatchSize: this.BATCH_SIZE },
     );
 
     this.designationByIdLoader = new DataLoader(
@@ -66,7 +66,7 @@ export class CategoryDataSource {
           return ids.map(() => null);
         }
       },
-      { maxBatchSize: 50 },
+      { maxBatchSize: this.BATCH_SIZE },
     );
   }
 
