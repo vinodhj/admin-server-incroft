@@ -13,8 +13,8 @@ export class KvStorageServiceAPI extends BaseService {
   }
 
   async adminKvAsset(input: AdminKvAssetInput): Promise<AdminKvAsset> {
-    // Only admins can access admin KV assets
-    this.requirePermission("kv", "admin");
+    // This is used to fetch faq and global search, so we need basic read permission
+    this.requirePermission("kv", "read");
 
     try {
       return await this.kvDataSource.adminKvAsset(input);

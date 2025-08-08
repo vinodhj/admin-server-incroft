@@ -60,8 +60,11 @@ export class UserServiceAPI extends BaseService {
     ids: InputMaybe<string[]> | undefined,
     input: InputMaybe<PaginatedUsersInputs> | undefined,
   ): Promise<UsersConnection> {
-    // 🔐 Authorization check - use "list" permission for paginated user queries
-    this.requirePermission("user", "list");
+    // 🔐 Authorization check
+    this.requireAnyPermission([
+      { resource: "user", action: "read" },
+      { resource: "user", action: "list" },
+    ]);
 
     const processedInput = input ?? {
       first: 10,
@@ -95,7 +98,10 @@ export class UserServiceAPI extends BaseService {
 
   async users(): Promise<Array<UserResponse>> {
     // 🔐 Authorization check
-    this.requirePermission("user", "read");
+    this.requireAnyPermission([
+      { resource: "user", action: "read" },
+      { resource: "user", action: "list" },
+    ]);
 
     // Check cache first
     const cacheKey = "users:all";
@@ -114,8 +120,16 @@ export class UserServiceAPI extends BaseService {
   }
 
   async userProfileById(id: string): Promise<UserProfile | null> {
-    // 🔐 Authorization check - can read own profile or need read permission
-    this.requireOwnershipOrPermission(id, "user", "read");
+    // 🔐 Authorization check
+    const isOwnProfile = this.sessionUser?.id === id;
+
+    if (isOwnProfile) {
+      // Reading own profile - check for self permission
+      this.requirePermission("user", "read_self");
+    } else {
+      // Reading someone else's profile - need general read permission
+      this.requirePermission("user", "read");
+    }
     try {
       // Use DataLoader through datasource
       const profile = await this.userDataSource.getProfileByUserId(id);
@@ -140,7 +154,7 @@ export class UserServiceAPI extends BaseService {
     const isOwnEmail = this.sessionUser?.email === input.email;
 
     if (isOwnEmail) {
-      this.requireOwnershipOrPermission(input.email, "user", "read");
+      this.requireOwnershipOrPermission(input.email, "user", "read_self");
     } else {
       this.requirePermission("user", "read");
     }
@@ -176,7 +190,7 @@ export class UserServiceAPI extends BaseService {
       // For sensitive fields, check ownership or admin permissions
       const isLookingUpSelf = this.sessionUser?.id === input.value || this.sessionUser?.email === input.value;
       if (!isLookingUpSelf) {
-        this.requirePermission("user", "read");
+        this.requireOwnershipOrPermission(input.value, "user", "read_self");
       }
     } else {
       this.requirePermission("user", "read");
@@ -284,8 +298,15 @@ export class UserServiceAPI extends BaseService {
   }
 
   async getUserById(id: string): Promise<UserResponse | null> {
-    // 🔐 Authorization check - can read own profile or need read permission
-    this.requireOwnershipOrPermission(id, "user", "read");
+    const isOwnProfile = this.sessionUser?.id === id;
+
+    if (isOwnProfile) {
+      // Reading own profile - check for self permission
+      this.requirePermission("user", "read_self");
+    } else {
+      // Reading someone else's profile - need general read permission
+      this.requirePermission("user", "read");
+    }
 
     return this.userDataSource.getUserById(id);
   }
