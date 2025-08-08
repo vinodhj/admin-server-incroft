@@ -12,7 +12,7 @@ import { CategoryDataSource } from "@src/datasources/category-datasources";
 import { categoryCache } from "@src/cache/in-memory-cache";
 import { BaseService } from "./base-service";
 
-export class CategoryServiceAP extends BaseService {
+export class CategoryServiceAPI extends BaseService {
   private readonly categoryDataSource: CategoryDataSource;
 
   constructor({ categoryDataSource, sessionUser }: { categoryDataSource: CategoryDataSource; sessionUser: SessionUserType }) {
