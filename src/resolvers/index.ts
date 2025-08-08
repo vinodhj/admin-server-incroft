@@ -4,12 +4,15 @@ import { AuthQuery } from "./auth/queries";
 import { CategoryQuery } from "./category/queries";
 import { CategoryMutation } from "./category/mutations";
 import { ProfileNestedResolvers, UserNestedResolvers } from "./nested-resolvers";
+import { CompanyQuery } from "./company/queries";
+import { CompanyMutation } from "./company/mutations";
 
 const Query = {
   // Root resolvers
   health: () => "OK",
   version: () => "1.0.0",
   serverTime: () => new Date().toISOString(),
+  ...CompanyQuery,
   ...AuthQuery,
   ...CategoryQuery,
 };
@@ -19,6 +22,7 @@ const Mutation = {
     timestamp: new Date().toISOString(),
     services: [{ name: "GraphQL", status: "HEALTHY", responseTime: 1 }],
   }),
+  ...CompanyMutation,
   ...AuthMutation,
   ...CategoryMutation,
 };

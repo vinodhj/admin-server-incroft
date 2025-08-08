@@ -2,10 +2,11 @@ import { gql } from "graphql-tag";
 
 export const companyTypeDefs = gql`
   type Address {
-    street: String
+    street: String!
     city: String!
     state: String!
-    zipcode: String
+    zipcode: String!
+    country: String!
   }
 
   type SocialMedia {
@@ -20,21 +21,22 @@ export const companyTypeDefs = gql`
   type CompanyProfile {
     name: String!
     description: String!
-    short_description: String!
-    tagline: String!
-    primary_phone: String
+    short_description: String
+    tagline: String
+    primary_phone: String!
     alternate_phone: String
     public_contact_email: String!
-    business_hours: String!
-    address: Address!
-    social_media: SocialMedia!
+    business_hours: String
+    address: Address
+    social_media: SocialMedia
   }
 
   input AddressInput {
-    street: String
+    street: String!
     city: String!
     state: String!
-    zipcode: String
+    zipcode: String!
+    country: String!
   }
 
   input SocialMediaInput {
@@ -49,14 +51,14 @@ export const companyTypeDefs = gql`
   input UpdateCompanyProfileInput {
     name: String!
     description: String!
-    short_description: String!
-    tagline: String!
-    primary_phone: String
+    short_description: String
+    tagline: String
+    primary_phone: String!
     alternate_phone: String
     public_contact_email: String!
-    business_hours: String!
-    address: AddressInput!
-    social_media: SocialMediaInput!
+    business_hours: String
+    address: AddressInput
+    social_media: SocialMediaInput
   }
   type AdminKvAsset {
     kv_key: String!

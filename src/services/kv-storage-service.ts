@@ -1,5 +1,5 @@
 import { KvStorageDataSource } from "@src/datasources/kv-storage";
-import { AdminKvAsset, AdminKvAssetInput } from "generated";
+import { AdminKvAsset, AdminKvAssetInput, CompanyProfile, CompanyProfileResponse, UpdateCompanyProfileInput } from "generated";
 import { GraphQLError } from "graphql";
 import { BaseService } from "./base-service";
 import { SessionUserType } from ".";
@@ -27,5 +27,22 @@ export class KvStorageServiceAPI extends BaseService {
         },
       });
     }
+  }
+
+  async getCompanyProfile(): Promise<CompanyProfile | null> {
+    const profile = await this.kvDataSource.getCompanyProfile();
+    return profile;
+  }
+
+  async updateCompanyProfile(input: UpdateCompanyProfileInput): Promise<CompanyProfileResponse> {
+    // Authorization check
+    this.requirePermission("company_profile", "update");
+
+    const updatedProfile = await this.kvDataSource.updateCompanyProfile(input);
+
+    return {
+      success: true,
+      company_profile: updatedProfile,
+    };
   }
 }
