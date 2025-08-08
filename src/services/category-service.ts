@@ -10,14 +10,14 @@ import {
 import { SessionUserType } from ".";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
 import { categoryCache } from "@src/cache/in-memory-cache";
+import { BaseService } from "./base-service";
 
-export class CategoryServiceAPI {
+export class CategoryServiceAP extends BaseService {
   private readonly categoryDataSource: CategoryDataSource;
-  private readonly sessionUser: SessionUserType;
 
   constructor({ categoryDataSource, sessionUser }: { categoryDataSource: CategoryDataSource; sessionUser: SessionUserType }) {
+    super(sessionUser);
     this.categoryDataSource = categoryDataSource;
-    this.sessionUser = sessionUser;
   }
 
   // Delegate DataLoader access to datasource
@@ -36,8 +36,10 @@ export class CategoryServiceAPI {
     const idPart = input?.id ? `:${input.id}` : "";
     return `category:${category_type}${searchPart}${idPart}`;
   }
-
   async createCategory(input: CreateCategoryInput): Promise<CategoryResponse> {
+    // 🔐 Authorization check
+    this.requirePermission("category", "create");
+
     // Clear cache for this category type when creating a new category
     categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
@@ -46,6 +48,9 @@ export class CategoryServiceAPI {
   }
 
   async updateCategory(input: UpdateCategoryInput): Promise<CategoryResponse> {
+    // 🔐 Authorization check
+    this.requirePermission("category", "update");
+
     // Clear cache for this category type when updating a category
     categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
@@ -54,6 +59,9 @@ export class CategoryServiceAPI {
   }
 
   async deleteCategory(input: DeleteCategoryInput): Promise<boolean> {
+    // 🔐 Authorization check
+    this.requirePermission("category", "delete");
+
     // Clear cache for this category type when deleting a category
     categoryCache.invalidateByPattern(`category:${input.category_type}`);
 
@@ -62,6 +70,9 @@ export class CategoryServiceAPI {
   }
 
   async category(category_type: CategoryType, input?: CategoryFilter): Promise<Array<Category>> {
+    // 🔐 Authorization check
+    this.requirePermission("category", "read");
+
     const search = input?.search ?? "";
     const id = input?.id ?? "";
 
@@ -84,10 +95,16 @@ export class CategoryServiceAPI {
 
   // Business logic methods that use DataLoader internally
   async getDepartmentById(id: string): Promise<Category | null> {
+    // 🔐 Authorization check
+    this.requirePermission("category", "read");
+
     return this.categoryDataSource.getDepartmentById(id);
   }
 
   async getDesignationById(id: string): Promise<Category | null> {
+    // 🔐 Authorization check
+    this.requirePermission("category", "read");
+
     return this.categoryDataSource.getDesignationById(id);
   }
 }

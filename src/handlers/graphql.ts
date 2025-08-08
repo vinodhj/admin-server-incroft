@@ -3,9 +3,9 @@ import { drizzle } from "drizzle-orm/d1";
 import { schema } from "@src/schemas";
 import { addCORSHeaders } from "@src/cors-headers";
 import { APIs, createAPIs, SessionUserType } from "@src/services";
-import { Role } from "db/schema/user";
 import { SecurityMiddleware } from "./security-middleware";
 import { mapRole } from "@src/datasources/utils";
+import { AuthorizationService } from "@src/auth/authorization-service";
 
 export interface YogaInitialContext {
   jwtSecret: string;
@@ -15,6 +15,9 @@ export interface YogaInitialContext {
 }
 
 const GRAPHQL_PATH = "/graphql";
+
+// 🚀 INITIALIZE RBAC SYSTEM ONCE AT MODULE LEVEL
+AuthorizationService.init();
 
 const getAccessToken = (authorizationHeader: string | null): string | null => {
   if (!authorizationHeader) return null;
@@ -26,6 +29,12 @@ export const getHeader = (headers: Headers, key: string): string | null => heade
 export default async function handleGraphQL(request: Request, env: Env): Promise<Response> {
   const db = drizzle(env.DB);
   const isDev = env.ENVIRONMENT === "DEV";
+
+  // 💡 Logging RBAC initialization in dev mode
+  if (isDev) {
+    console.log("RBAC System initialized");
+    console.log("Available roles:", Object.keys(AuthorizationService.getRolePermissions()));
+  }
 
   // Instantiate security middleware
   const securityMiddleware = new SecurityMiddleware();
