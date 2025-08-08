@@ -1,5 +1,4 @@
 import { UserDataSource } from "@src/datasources/user";
-import { validateUserAccess } from "@src/services/helper/userAccessValidators";
 import { Role } from "db/schema/user";
 import {
   ColumnName,
@@ -20,14 +19,14 @@ import {
 import { GraphQLError } from "graphql";
 import { SessionUserType } from ".";
 import { userCache } from "@src/cache/in-memory-cache";
+import { BaseService } from "./base-service";
 
-export class UserServiceAPI {
+export class UserServiceAPI extends BaseService {
   private readonly userDataSource: UserDataSource;
-  private readonly sessionUser: SessionUserType;
 
-  constructor({ userDataSource, sessionUser }: { userDataSource: UserDataSource; sessionUser?: SessionUserType }) {
+  constructor({ userDataSource, sessionUser }: { userDataSource: UserDataSource; sessionUser: SessionUserType }) {
+    super(sessionUser);
     this.userDataSource = userDataSource;
-    this.sessionUser = sessionUser ?? null;
   }
 
   // Delegate DataLoader access to datasource
@@ -39,12 +38,33 @@ export class UserServiceAPI {
     return this.userDataSource.getUserProfileLoader();
   }
 
+  // Create a more robust cache key generation method
+  private generateCacheKey(method: string, params?: any): string {
+    if (method === "paginatedUsers") {
+      const { ids, input } = params;
+      return ids && ids.length > 0 ? `users:ids:${ids.join(",")}` : `users:paginated:${JSON.stringify(input)}`;
+    }
+    if (method === "userByEmail") {
+      return `user:email:${params.email}`;
+    }
+    if (method === "userByField") {
+      return `users:field:${params.field}:${params.value}`;
+    }
+    if (method === "userById") {
+      return `user:id:${params.id}`;
+    }
+    return `users:${method}`;
+  }
+
   async paginatedUsers(
     ids: InputMaybe<string[]> | undefined,
     input: InputMaybe<PaginatedUsersInputs> | undefined,
   ): Promise<UsersConnection> {
-    // Validate access rights
-    validateUserAccess(this.sessionUser, {}, true);
+    // 🔐 Authorization check
+    this.requireAnyPermission([
+      { resource: "user", action: "read" },
+      { resource: "user", action: "list" },
+    ]);
 
     const processedInput = input ?? {
       first: 10,
@@ -53,7 +73,7 @@ export class UserServiceAPI {
     };
 
     // Create a unique cache key for the request
-    const cacheKey = ids && ids.length > 0 ? `users:ids:${ids.join(",")}` : `users:paginated:${JSON.stringify(input)}`;
+    const cacheKey = this.generateCacheKey("paginatedUsers", { ids, input });
 
     // Check cache first
     const cachedResult = userCache.get(cacheKey);
@@ -77,8 +97,11 @@ export class UserServiceAPI {
   }
 
   async users(): Promise<Array<UserResponse>> {
-    // Validate access rights
-    validateUserAccess(this.sessionUser, {});
+    // 🔐 Authorization check
+    this.requireAnyPermission([
+      { resource: "user", action: "read" },
+      { resource: "user", action: "list" },
+    ]);
 
     // Check cache first
     const cacheKey = "users:all";
@@ -97,7 +120,16 @@ export class UserServiceAPI {
   }
 
   async userProfileById(id: string): Promise<UserProfile | null> {
-    validateUserAccess(this.sessionUser, { id });
+    // 🔐 Authorization check
+    const isOwnProfile = this.sessionUser?.id === id;
+
+    if (isOwnProfile) {
+      // Reading own profile - check for self permission
+      this.requirePermission("user", "read_self");
+    } else {
+      // Reading someone else's profile - need general read permission
+      this.requirePermission("user", "read");
+    }
     try {
       // Use DataLoader through datasource
       const profile = await this.userDataSource.getProfileByUserId(id);
@@ -118,7 +150,14 @@ export class UserServiceAPI {
   }
 
   async userByEmail(input: UserByEmailInput): Promise<UserResponse> {
-    validateUserAccess(this.sessionUser, { email: input.email });
+    // 🔐 Authorization check - for email lookups, we need read permission
+    const isOwnEmail = this.sessionUser?.email === input.email;
+
+    if (isOwnEmail) {
+      this.requireOwnershipOrPermission(input.email, "user", "read_self");
+    } else {
+      this.requirePermission("user", "read");
+    }
 
     // Create cache key
     const cacheKey = `user:email:${input.email}`;
@@ -146,10 +185,15 @@ export class UserServiceAPI {
   }
 
   async userByField(input: UserByFieldInput): Promise<Array<UserResponse>> {
+    // 🔐 Authorization check - different permissions based on field
     if (input.field === ColumnName.Id || input.field === ColumnName.Email) {
-      validateUserAccess(this.sessionUser, { [input.field]: input.value });
+      // For sensitive fields, check ownership or admin permissions
+      const isLookingUpSelf = this.sessionUser?.id === input.value || this.sessionUser?.email === input.value;
+      if (!isLookingUpSelf) {
+        this.requireOwnershipOrPermission(input.value, "user", "read_self");
+      }
     } else {
-      validateUserAccess(this.sessionUser, {});
+      this.requirePermission("user", "read");
     }
 
     // Create cache key
@@ -194,7 +238,9 @@ export class UserServiceAPI {
   }
 
   async editUser(input: EditUserInput): Promise<EditUserResponse> {
-    validateUserAccess(this.sessionUser, { id: input.id });
+    // 🔐 Authorization check - can edit own profile or need update permission
+    this.requireOwnershipOrPermission(input.id, "user", "update");
+
     const result = await this.userDataSource.editUser(input);
 
     // Invalidate relevant cache entries
@@ -206,7 +252,9 @@ export class UserServiceAPI {
   }
 
   async deleteUser(input: DeleteUserInput): Promise<boolean> {
-    validateUserAccess(this.sessionUser, { id: input.id });
+    // 🔐 Authorization check - only specific roles can delete users
+    this.requirePermission("user", "delete");
+
     const isRoleAdmin = this.sessionUser?.role === Role.Admin;
 
     // If the user is not an admin, return an empty object
@@ -227,6 +275,9 @@ export class UserServiceAPI {
   }
 
   async disableUser(input: DisableUserInput): Promise<boolean> {
+    // 🔐 Authorization check - only specific roles can disable users
+    this.requirePermission("user", "disable");
+
     // Validate access rights
     const isRoleAdmin = this.sessionUser?.role === Role.Admin;
 
@@ -247,6 +298,16 @@ export class UserServiceAPI {
   }
 
   async getUserById(id: string): Promise<UserResponse | null> {
+    const isOwnProfile = this.sessionUser?.id === id;
+
+    if (isOwnProfile) {
+      // Reading own profile - check for self permission
+      this.requirePermission("user", "read_self");
+    } else {
+      // Reading someone else's profile - need general read permission
+      this.requirePermission("user", "read");
+    }
+
     return this.userDataSource.getUserById(id);
   }
 }

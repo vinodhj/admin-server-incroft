@@ -2,18 +2,17 @@ import { AuthDataSource } from "@src/datasources/auth";
 import { ChangePasswordInput, LoginInput, LoginResponse, LogoutResponse, SignUpInput, SignUpResponse } from "generated";
 import { validateEmailAndPassword } from "@src/services/helper/authValidators";
 import { generateToken, TokenPayload } from "@src/services/helper/jwtUtils";
-import { validateUserAccess } from "@src/services/helper/userAccessValidators";
 import { changePasswordValidators } from "@src/services/helper/changePasswordValidators";
 import { GraphQLError } from "graphql";
 import jwt from "jsonwebtoken";
 import { SessionUserType } from ".";
 import { EmployeeCodeServiceAPI } from "./employee-code-service";
 import { userCache } from "@src/cache/in-memory-cache";
+import { BaseService } from "./base-service";
 
-export class AuthServiceAPI {
+export class AuthServiceAPI extends BaseService {
   private readonly authDataSource: AuthDataSource;
   private readonly jwtSecret: string;
-  private readonly sessionUser: SessionUserType;
   private readonly employeeCodeAPI: EmployeeCodeServiceAPI;
 
   constructor({
@@ -27,9 +26,9 @@ export class AuthServiceAPI {
     sessionUser?: SessionUserType;
     employeeCodeAPI: EmployeeCodeServiceAPI;
   }) {
+    super(sessionUser ?? null);
     this.authDataSource = authDataSource;
     this.jwtSecret = jwtSecret;
-    this.sessionUser = sessionUser ?? null;
     this.employeeCodeAPI = employeeCodeAPI;
   }
 
@@ -79,8 +78,9 @@ export class AuthServiceAPI {
   }
 
   async changePassword(input: ChangePasswordInput): Promise<boolean> {
-    // Validate user access and inputs
-    validateUserAccess(this.sessionUser, { id: input.id });
+    // 🔐 Authorization check
+    this.requirePermission("auth", "change_password_self");
+
     changePasswordValidators(input.current_password, input.new_password, input.confirm_password);
 
     const result = await this.authDataSource.changePassword(input);

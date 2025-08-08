@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import { APIs } from "@src/services";
 import { CategoryResponse, CreateCategoryInput } from "generated";
+import { AuthorizationError } from "@src/auth/authorization-service";
 
 export const createCategory = async (
   _: unknown,
@@ -10,11 +11,18 @@ export const createCategory = async (
   try {
     return await categoryAPI.createCategory(input);
   } catch (error) {
+    console.error("Unexpected error:", error);
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors
       throw error;
+    } else if (error instanceof AuthorizationError) {
+      throw new GraphQLError(`Unauthorized: ${error.message}`, {
+        extensions: {
+          code: "UNAUTHORIZED-RBAC",
+          error,
+        },
+      });
     }
-    console.error("Unexpected error:", error);
     throw new GraphQLError("Failed to create category", {
       extensions: {
         code: "INTERNAL_SERVER_ERROR",

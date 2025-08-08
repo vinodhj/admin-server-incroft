@@ -10,11 +10,11 @@ export const signUp = async (
   try {
     return await authAPI.signUp(input);
   } catch (error) {
+    console.error("Unexpected error:", error);
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors
       throw error;
     }
-    console.error("Unexpected error:", error);
     throw new GraphQLError("Failed to sign up", {
       extensions: {
         code: "INTERNAL_SERVER_ERROR",
