@@ -10,11 +10,11 @@ export const logout = async (
   try {
     return await authAPI.logout(accessToken);
   } catch (error) {
+    console.error("Unexpected error:", error);
     if (error instanceof GraphQLError || error instanceof Error) {
       // Re-throw GraphQL-specific errors
       throw error;
     }
-    console.error("Unexpected error:", error);
     throw new GraphQLError("Failed to logout", {
       extensions: {
         code: "INTERNAL_SERVER_ERROR",

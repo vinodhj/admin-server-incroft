@@ -11,6 +11,7 @@ export const createCategory = async (
   try {
     return await categoryAPI.createCategory(input);
   } catch (error) {
+    console.error("Unexpected error:", error);
     if (error instanceof GraphQLError) {
       // Re-throw GraphQL-specific errors
       throw error;
@@ -22,7 +23,6 @@ export const createCategory = async (
         },
       });
     }
-    console.error("Unexpected error:", error);
     throw new GraphQLError("Failed to create category", {
       extensions: {
         code: "INTERNAL_SERVER_ERROR",

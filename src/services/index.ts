@@ -40,7 +40,7 @@ export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
 
   // KV Storage Service API
   const kvStorageDataSource = new KvStorageDataSource(env.KV_INCROFT_JWT_AUTH, env.ENVIRONMENT);
-  const kvStorageAPI = new KvStorageServiceAPI(kvStorageDataSource);
+  const kvStorageAPI = new KvStorageServiceAPI({ kvDataSource: kvStorageDataSource, sessionUser });
 
   // Auth Service API
   const authDataSource = new AuthDataSource({ db, kvStorageDataSource, sessionUser });
