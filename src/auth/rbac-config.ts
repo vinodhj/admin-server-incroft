@@ -28,6 +28,7 @@ export const RBAC_CONFIG = {
         "kv:read",
         "kv:write",
         "kv:admin", // Can manage KV assets
+        "company_profile:update", // Can update company profile
       ],
     },
     [Role.Viewer]: {
