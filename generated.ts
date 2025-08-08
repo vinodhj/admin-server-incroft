@@ -18,6 +18,21 @@ export type Scalars = {
   JSON: { input: any; output: any };
 };
 
+export type Address = {
+  __typename?: "Address";
+  city: Scalars["String"]["output"];
+  state: Scalars["String"]["output"];
+  street?: Maybe<Scalars["String"]["output"]>;
+  zipcode?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type AddressInput = {
+  city: Scalars["String"]["input"];
+  state: Scalars["String"]["input"];
+  street?: InputMaybe<Scalars["String"]["input"]>;
+  zipcode?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export type AdminKvAsset = {
   __typename?: "AdminKvAsset";
   kv_key: Scalars["String"]["output"];
@@ -82,6 +97,26 @@ export enum ColumnName {
   Phone = "phone",
   Role = "role",
 }
+
+export type CompanyProfile = {
+  __typename?: "CompanyProfile";
+  address: Address;
+  alternate_phone?: Maybe<Scalars["String"]["output"]>;
+  business_hours: Scalars["String"]["output"];
+  description: Scalars["String"]["output"];
+  name: Scalars["String"]["output"];
+  primary_phone?: Maybe<Scalars["String"]["output"]>;
+  public_contact_email: Scalars["String"]["output"];
+  short_description: Scalars["String"]["output"];
+  social_media: SocialMedia;
+  tagline: Scalars["String"]["output"];
+};
+
+export type CompanyProfileResponse = {
+  __typename?: "CompanyProfileResponse";
+  company_profile?: Maybe<CompanyProfile>;
+  success: Scalars["Boolean"]["output"];
+};
 
 export type CreateCategoryInput = {
   category_type: CategoryType;
@@ -257,6 +292,7 @@ export type Mutation = {
   logout: LogoutResponse;
   signUp: SignUpResponse;
   updateCategory: CategoryResponse;
+  updateCompanyProfile: CompanyProfileResponse;
 };
 
 export type MutationChangePasswordArgs = {
@@ -293,6 +329,10 @@ export type MutationSignUpArgs = {
 
 export type MutationUpdateCategoryArgs = {
   input: UpdateCategoryInput;
+};
+
+export type MutationUpdateCompanyProfileArgs = {
+  input: UpdateCompanyProfileInput;
 };
 
 export type PageInfo = {
@@ -333,6 +373,7 @@ export type PayrollDetailsInput = {
 export type Query = {
   __typename?: "Query";
   adminKvAsset?: Maybe<AdminKvAsset>;
+  companyProfile?: Maybe<CompanyProfile>;
   departments?: Maybe<Array<Maybe<Category>>>;
   designations?: Maybe<Array<Maybe<Category>>>;
   paginatedUsers?: Maybe<UsersConnection>;
@@ -397,6 +438,25 @@ export type SignUpResponse = {
   user?: Maybe<UserSuccessResponse>;
 };
 
+export type SocialMedia = {
+  __typename?: "SocialMedia";
+  facebook?: Maybe<Scalars["String"]["output"]>;
+  instagram?: Maybe<Scalars["String"]["output"]>;
+  linkedin?: Maybe<Scalars["String"]["output"]>;
+  twitter?: Maybe<Scalars["String"]["output"]>;
+  whatsapp?: Maybe<Scalars["String"]["output"]>;
+  youtube?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type SocialMediaInput = {
+  facebook?: InputMaybe<Scalars["String"]["input"]>;
+  instagram?: InputMaybe<Scalars["String"]["input"]>;
+  linkedin?: InputMaybe<Scalars["String"]["input"]>;
+  twitter?: InputMaybe<Scalars["String"]["input"]>;
+  whatsapp?: InputMaybe<Scalars["String"]["input"]>;
+  youtube?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 export enum Sort {
   Asc = "ASC",
   Desc = "DESC",
@@ -408,6 +468,19 @@ export type UpdateCategoryInput = {
   id: Scalars["ID"]["input"];
   is_disabled?: InputMaybe<Scalars["Boolean"]["input"]>;
   name: Scalars["String"]["input"];
+};
+
+export type UpdateCompanyProfileInput = {
+  address: AddressInput;
+  alternate_phone?: InputMaybe<Scalars["String"]["input"]>;
+  business_hours: Scalars["String"]["input"];
+  description: Scalars["String"]["input"];
+  name: Scalars["String"]["input"];
+  primary_phone?: InputMaybe<Scalars["String"]["input"]>;
+  public_contact_email: Scalars["String"]["input"];
+  short_description: Scalars["String"]["input"];
+  social_media: SocialMediaInput;
+  tagline: Scalars["String"]["input"];
 };
 
 export type User = {
@@ -456,9 +529,9 @@ export type UserProfile = {
   date_of_birth?: Maybe<Scalars["DateTime"]["output"]>;
   date_of_joining?: Maybe<Scalars["DateTime"]["output"]>;
   date_of_leaving?: Maybe<Scalars["DateTime"]["output"]>;
-  department: Department;
+  department?: Maybe<Department>;
   department_id: Scalars["String"]["output"];
-  designation: Designation;
+  designation?: Maybe<Designation>;
   designation_id: Scalars["String"]["output"];
   emergency_contact_details?: Maybe<EmergencyContactDetails>;
   employee_photo_url?: Maybe<Scalars["String"]["output"]>;
@@ -614,6 +687,8 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  Address: ResolverTypeWrapper<Address>;
+  AddressInput: AddressInput;
   AdminKvAsset: ResolverTypeWrapper<AdminKvAsset>;
   AdminKvAssetInput: AdminKvAssetInput;
   Boolean: ResolverTypeWrapper<Scalars["Boolean"]["output"]>;
@@ -624,6 +699,8 @@ export type ResolversTypes = {
   CategoryType: CategoryType;
   ChangePasswordInput: ChangePasswordInput;
   ColumnName: ColumnName;
+  CompanyProfile: ResolverTypeWrapper<CompanyProfile>;
+  CompanyProfileResponse: ResolverTypeWrapper<CompanyProfileResponse>;
   CreateCategoryInput: CreateCategoryInput;
   DateTime: ResolverTypeWrapper<Scalars["DateTime"]["output"]>;
   DeleteCategoryInput: DeleteCategoryInput;
@@ -657,9 +734,12 @@ export type ResolversTypes = {
   SORT_BY: Sort_By;
   SignUpInput: SignUpInput;
   SignUpResponse: ResolverTypeWrapper<SignUpResponse>;
+  SocialMedia: ResolverTypeWrapper<SocialMedia>;
+  SocialMediaInput: SocialMediaInput;
   Sort: Sort;
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   UpdateCategoryInput: UpdateCategoryInput;
+  UpdateCompanyProfileInput: UpdateCompanyProfileInput;
   User: ResolverTypeWrapper<User>;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
@@ -674,6 +754,8 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  Address: Address;
+  AddressInput: AddressInput;
   AdminKvAsset: AdminKvAsset;
   AdminKvAssetInput: AdminKvAssetInput;
   Boolean: Scalars["Boolean"]["output"];
@@ -682,6 +764,8 @@ export type ResolversParentTypes = {
   CategoryResponse: CategoryResponse;
   CategorySuccessResponse: CategorySuccessResponse;
   ChangePasswordInput: ChangePasswordInput;
+  CompanyProfile: CompanyProfile;
+  CompanyProfileResponse: CompanyProfileResponse;
   CreateCategoryInput: CreateCategoryInput;
   DateTime: Scalars["DateTime"]["output"];
   DeleteCategoryInput: DeleteCategoryInput;
@@ -710,8 +794,11 @@ export type ResolversParentTypes = {
   Query: {};
   SignUpInput: SignUpInput;
   SignUpResponse: SignUpResponse;
+  SocialMedia: SocialMedia;
+  SocialMediaInput: SocialMediaInput;
   String: Scalars["String"]["output"];
   UpdateCategoryInput: UpdateCategoryInput;
+  UpdateCompanyProfileInput: UpdateCompanyProfileInput;
   User: User;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
@@ -721,6 +808,14 @@ export type ResolversParentTypes = {
   UserResponse: UserResponse;
   UserSuccessResponse: UserSuccessResponse;
   UsersConnection: UsersConnection;
+};
+
+export type AddressResolvers<ContextType = any, ParentType extends ResolversParentTypes["Address"] = ResolversParentTypes["Address"]> = {
+  city?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  state?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  street?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  zipcode?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type AdminKvAssetResolvers<
@@ -761,6 +856,32 @@ export type CategorySuccessResponseResolvers<
   description?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes["ID"], ParentType, ContextType>;
   name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CompanyProfileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["CompanyProfile"] = ResolversParentTypes["CompanyProfile"],
+> = {
+  address?: Resolver<ResolversTypes["Address"], ParentType, ContextType>;
+  alternate_phone?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  business_hours?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  primary_phone?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  public_contact_email?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  short_description?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  social_media?: Resolver<ResolversTypes["SocialMedia"], ParentType, ContextType>;
+  tagline?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type CompanyProfileResponseResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["CompanyProfileResponse"] = ResolversParentTypes["CompanyProfileResponse"],
+> = {
+  company_profile?: Resolver<Maybe<ResolversTypes["CompanyProfile"]>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -887,6 +1008,12 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
     ContextType,
     RequireFields<MutationUpdateCategoryArgs, "input">
   >;
+  updateCompanyProfile?: Resolver<
+    ResolversTypes["CompanyProfileResponse"],
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpdateCompanyProfileArgs, "input">
+  >;
 };
 
 export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes["PageInfo"] = ResolversParentTypes["PageInfo"]> = {
@@ -909,6 +1036,7 @@ export type PayrollDetailsResolvers<
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes["Query"] = ResolversParentTypes["Query"]> = {
   adminKvAsset?: Resolver<Maybe<ResolversTypes["AdminKvAsset"]>, ParentType, ContextType, RequireFields<QueryAdminKvAssetArgs, "input">>;
+  companyProfile?: Resolver<Maybe<ResolversTypes["CompanyProfile"]>, ParentType, ContextType>;
   departments?: Resolver<Maybe<Array<Maybe<ResolversTypes["Category"]>>>, ParentType, ContextType, Partial<QueryDepartmentsArgs>>;
   designations?: Resolver<Maybe<Array<Maybe<ResolversTypes["Category"]>>>, ParentType, ContextType, Partial<QueryDesignationsArgs>>;
   paginatedUsers?: Resolver<Maybe<ResolversTypes["UsersConnection"]>, ParentType, ContextType, Partial<QueryPaginatedUsersArgs>>;
@@ -928,6 +1056,19 @@ export type SignUpResponseResolvers<
 > = {
   success?: Resolver<ResolversTypes["Boolean"], ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes["UserSuccessResponse"]>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type SocialMediaResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes["SocialMedia"] = ResolversParentTypes["SocialMedia"],
+> = {
+  facebook?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  instagram?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  linkedin?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  twitter?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  whatsapp?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
+  youtube?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -970,9 +1111,9 @@ export type UserProfileResolvers<
   date_of_birth?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   date_of_joining?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
   date_of_leaving?: Resolver<Maybe<ResolversTypes["DateTime"]>, ParentType, ContextType>;
-  department?: Resolver<ResolversTypes["Department"], ParentType, ContextType>;
+  department?: Resolver<Maybe<ResolversTypes["Department"]>, ParentType, ContextType>;
   department_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
-  designation?: Resolver<ResolversTypes["Designation"], ParentType, ContextType>;
+  designation?: Resolver<Maybe<ResolversTypes["Designation"]>, ParentType, ContextType>;
   designation_id?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
   emergency_contact_details?: Resolver<Maybe<ResolversTypes["EmergencyContactDetails"]>, ParentType, ContextType>;
   employee_photo_url?: Resolver<Maybe<ResolversTypes["String"]>, ParentType, ContextType>;
@@ -1068,10 +1209,13 @@ export type UsersConnectionResolvers<
 };
 
 export type Resolvers<ContextType = any> = {
+  Address?: AddressResolvers<ContextType>;
   AdminKvAsset?: AdminKvAssetResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   CategoryResponse?: CategoryResponseResolvers<ContextType>;
   CategorySuccessResponse?: CategorySuccessResponseResolvers<ContextType>;
+  CompanyProfile?: CompanyProfileResolvers<ContextType>;
+  CompanyProfileResponse?: CompanyProfileResponseResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   Department?: DepartmentResolvers<ContextType>;
   Designation?: DesignationResolvers<ContextType>;
@@ -1087,6 +1231,7 @@ export type Resolvers<ContextType = any> = {
   PayrollDetails?: PayrollDetailsResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SignUpResponse?: SignUpResponseResolvers<ContextType>;
+  SocialMedia?: SocialMediaResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserEdge?: UserEdgeResolvers<ContextType>;
   UserProfile?: UserProfileResolvers<ContextType>;

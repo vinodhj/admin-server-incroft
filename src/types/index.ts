@@ -111,8 +111,8 @@ export const typeDefs = gql`
     # Employment Information
     designation_id: String!
     department_id: String!
-    designation: Designation!
-    department: Department!
+    designation: Designation
+    department: Department
     employment_type: EmploymentType!
     work_location: WorkLocation!
     date_of_joining: DateTime
