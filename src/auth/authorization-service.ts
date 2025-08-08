@@ -20,8 +20,6 @@ export class AuthorizationService {
   static init() {
     if (this.initialized) return;
 
-    console.log("Initializing RBAC system...");
-
     // Build permission cache from config
     for (const [roleKey, roleConfig] of Object.entries(RBAC_CONFIG.roles)) {
       const role = roleKey as Role;
@@ -34,7 +32,6 @@ export class AuthorizationService {
     }
 
     this.initialized = true;
-    console.log("RBAC system initialized successfully");
   }
 
   private static addInheritedPermissions(role: Role, permissions: Set<string>, visited: Set<Role>): void {
