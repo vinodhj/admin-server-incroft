@@ -9,6 +9,7 @@ import { Role } from "db/schema/user";
 import { CategoryServiceAPI } from "./category-service";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
 import { EmployeeCodeServiceAPI } from "./employee-code-service";
+import { StorageConfig } from "@src/datasources/StorageFactory";
 
 export type SessionUserType = {
   id: string;
@@ -21,6 +22,7 @@ interface APIParams {
   db: DrizzleD1Database;
   env: Env;
   sessionUser: SessionUserType;
+  storageConfig: StorageConfig;
 }
 
 export interface APIs {
@@ -34,7 +36,7 @@ export interface APIs {
 /**
  * Factory function to create API/service instances.
  */
-export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
+export const createAPIs = ({ db, env, sessionUser, storageConfig }: APIParams): APIs => {
   // Employee Code Service API
   const employeeCodeAPI = new EmployeeCodeServiceAPI(env);
 
@@ -47,7 +49,7 @@ export const createAPIs = ({ db, env, sessionUser }: APIParams): APIs => {
   const authAPI = new AuthServiceAPI({ authDataSource, jwtSecret: env.JWT_SECRET, sessionUser, employeeCodeAPI });
 
   // User Service API
-  const userDataSource = new UserDataSource({ db, sessionUser });
+  const userDataSource = new UserDataSource({ db, sessionUser, storageConfig });
   const userAPI = new UserServiceAPI({ userDataSource, sessionUser });
 
   // Category Service API

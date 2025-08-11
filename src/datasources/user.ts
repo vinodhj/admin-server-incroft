@@ -16,10 +16,13 @@ import { SessionUserType } from "@src/services";
 import DataLoader from "dataloader";
 import { userProfile } from "db/schema";
 import { nanoid } from "nanoid";
+import { R2StorageService } from "./R2StorageService";
+import { StorageConfig, StorageFactory } from "./StorageFactory";
 
 export class UserDataSource {
   private readonly db: DrizzleD1Database;
   private readonly sessionUser: SessionUserType;
+  private readonly r2Storage: R2StorageService;
 
   private readonly userLoader: DataLoader<string, typeof user.$inferSelect | null>;
   private readonly userProfileLoader: DataLoader<string, typeof userProfile.$inferSelect | null>;
@@ -29,9 +32,10 @@ export class UserDataSource {
   private readonly MAX_PAGE_SIZE = 100; // Set maximum page size
   private readonly BATCH_SIZE = 50; // Maximum number of IDs to fetch in a single batch
 
-  constructor({ db, sessionUser }: { db: DrizzleD1Database; sessionUser?: SessionUserType }) {
+  constructor({ db, sessionUser, storageConfig }: { db: DrizzleD1Database; sessionUser?: SessionUserType; storageConfig: StorageConfig }) {
     this.db = db;
     this.sessionUser = sessionUser ?? null;
+    this.r2Storage = StorageFactory.getR2Storage(storageConfig);
 
     // User loader - batches user queries by ID
     this.userLoader = new DataLoader(
@@ -396,18 +400,83 @@ export class UserDataSource {
     return result;
   }
 
+  /**
+   * Upload employee photo to R2 and return the public URL
+   */
+  async uploadEmployeePhoto(file: File | ArrayBuffer | Uint8Array, employeeId: string): Promise<string> {
+    // Validate file if it's a File object
+    if (file instanceof File) {
+      if (!R2StorageService.isValidImageType(file.type)) {
+        throw new GraphQLError("Invalid image type. Only JPEG, PNG, WebP, and GIF are allowed.", {
+          extensions: { code: "INVALID_FILE_TYPE" },
+        });
+      }
+
+      if (!R2StorageService.isValidFileSize(file.size, 5)) {
+        throw new GraphQLError("File size exceeds 5MB limit.", {
+          extensions: { code: "FILE_SIZE_EXCEEDED" },
+        });
+      }
+    }
+
+    const uploadResult = await this.r2Storage.uploadEmployeePhoto(file, employeeId);
+
+    if (!uploadResult.success) {
+      throw new GraphQLError(`Failed to upload employee photo: ${uploadResult.error}`, {
+        extensions: { code: "UPLOAD_FAILED" },
+      });
+    }
+
+    return uploadResult.url!;
+  }
+
+  /**
+   * Delete employee photo from R2
+   */
+  async deleteEmployeePhoto(photoUrl: string): Promise<void> {
+    try {
+      // Extract the key from the full URL
+      const url = new URL(photoUrl);
+      const key = url.pathname.substring(1); // Remove leading slash
+
+      const deleted = await this.r2Storage.deleteFile(key);
+      if (!deleted) {
+        console.warn(`Failed to delete old photo: ${key}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting photo ${photoUrl}:`, error);
+      // Don't throw error as this is cleanup - main operation should succeed
+    }
+  }
+
   // Helper method to build personal information
-  private buildPersonalData(
+  private async buildPersonalData(
     input: EditUserInput,
-  ): Partial<
-    Pick<typeof userProfile.$inferInsert, "employee_photo_url" | "personal_email" | "date_of_birth" | "gender" | "marital_status">
+    existingProfile?: typeof userProfile.$inferSelect | null,
+  ): Promise<
+    Partial<Pick<typeof userProfile.$inferInsert, "employee_photo_url" | "personal_email" | "date_of_birth" | "gender" | "marital_status">>
   > {
     const result: Partial<
       Pick<typeof userProfile.$inferInsert, "employee_photo_url" | "personal_email" | "date_of_birth" | "gender" | "marital_status">
     > = {};
 
-    // TODO: Upload employee photo URL to a R2 bucket
-    if (this.isDefined(input.employee_photo_url)) result.employee_photo_url = input.employee_photo_url;
+    // Handle employee photo upload
+    if (input.employee_photo_file) {
+      try {
+        // Delete old photo
+        if (existingProfile?.employee_photo_url) {
+          await this.deleteEmployeePhoto(existingProfile.employee_photo_url);
+        }
+
+        // Upload new photo
+        const uploadResult = await this.uploadEmployeePhoto(input.employee_photo_file, input.id);
+        result.employee_photo_url = uploadResult;
+      } catch (error) {
+        console.error("Error uploading employee photo:", error);
+      }
+    }
+
+    // if (this.isDefined(input.employee_photo_url)) result.employee_photo_url = input.employee_photo_url;
     if (this.isDefined(input.personal_email)) result.personal_email = input.personal_email;
     if (this.isDefined(input.date_of_birth)) result.date_of_birth = new Date(input.date_of_birth);
     if (this.isDefined(input.gender)) result.gender = input.gender;
@@ -460,11 +529,15 @@ export class UserDataSource {
   }
 
   // Helper method to build complete profile data
-  private buildProfileData(input: EditUserInput): Partial<typeof userProfile.$inferInsert> {
+  private async buildProfileData(
+    input: EditUserInput,
+    existingProfile?: typeof userProfile.$inferSelect | null,
+  ): Promise<Partial<typeof userProfile.$inferInsert>> {
+    const personalData = await this.buildPersonalData(input, existingProfile);
     return {
       user_id: input.id,
       ...this.buildAddressData(input),
-      ...this.buildPersonalData(input),
+      ...personalData,
       ...this.buildEmploymentData(input),
       ...this.buildJSONFields(input),
       ...this.UpdateAuditFields(),
@@ -506,11 +579,11 @@ export class UserDataSource {
       }
 
       const updatedUser = userResult[0];
-      const isProfileExists = profileResult?.[0] || null;
+      const existingProfile = profileResult?.[0] || null;
 
-      const profileData = this.buildProfileData(input);
+      const profileData = await this.buildProfileData(input, existingProfile);
 
-      if (isProfileExists) {
+      if (existingProfile) {
         // Update existing profile
         const updatedProfile = await this.db
           .update(userProfile)

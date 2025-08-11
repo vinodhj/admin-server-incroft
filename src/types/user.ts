@@ -159,7 +159,7 @@ export const userTypeDefs = gql`
     country: String
     zipcode: String
     # Profile fields - Personal Information
-    employee_photo_url: String
+    employee_photo_file: Upload
     personal_email: String
     date_of_birth: DateTime
     gender: Gender
