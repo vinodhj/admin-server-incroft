@@ -6,7 +6,7 @@ import { APIs, createAPIs, SessionUserType } from "@src/services";
 import { SecurityMiddleware } from "./security-middleware";
 import { mapRole } from "@src/datasources/utils";
 import { AuthorizationService } from "@src/auth/authorization-service";
-import { StorageConfig } from "@src/datasources/StorageFactory";
+import { StorageConfig } from "@src/datasources/storage-factory";
 
 export interface YogaInitialContext {
   jwtSecret: string;

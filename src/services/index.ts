@@ -9,7 +9,7 @@ import { Role } from "db/schema/user";
 import { CategoryServiceAPI } from "./category-service";
 import { CategoryDataSource } from "@src/datasources/category-datasources";
 import { EmployeeCodeServiceAPI } from "./employee-code-service";
-import { StorageConfig } from "@src/datasources/StorageFactory";
+import { StorageConfig } from "@src/datasources/storage-factory";
 
 export type SessionUserType = {
   id: string;

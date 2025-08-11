@@ -16,8 +16,8 @@ import { SessionUserType } from "@src/services";
 import DataLoader from "dataloader";
 import { userProfile } from "db/schema";
 import { nanoid } from "nanoid";
-import { R2StorageService } from "./R2StorageService";
-import { StorageConfig, StorageFactory } from "./StorageFactory";
+import { R2StorageService } from "./r2-storage-service";
+import { StorageConfig, StorageFactory } from "./storage-factory";
 
 export class UserDataSource {
   private readonly db: DrizzleD1Database;

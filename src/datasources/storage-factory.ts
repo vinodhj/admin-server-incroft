@@ -1,5 +1,4 @@
-// src/datasources/storage/StorageFactory.ts
-import { R2StorageService } from "./R2StorageService";
+import { R2StorageService } from "./r2-storage-service";
 
 export interface StorageConfig {
   R2_BUCKET: R2Bucket;
