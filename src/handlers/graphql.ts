@@ -6,6 +6,7 @@ import { APIs, createAPIs, SessionUserType } from "@src/services";
 import { SecurityMiddleware } from "./security-middleware";
 import { mapRole } from "@src/datasources/utils";
 import { AuthorizationService } from "@src/auth/authorization-service";
+import { StorageConfig } from "@src/datasources/storage-factory";
 
 export interface YogaInitialContext {
   jwtSecret: string;
@@ -29,6 +30,12 @@ export const getHeader = (headers: Headers, key: string): string | null => heade
 export default async function handleGraphQL(request: Request, env: Env): Promise<Response> {
   const db = drizzle(env.DB);
   const isDev = env.ENVIRONMENT === "DEV";
+
+  // Initialize storage configuration
+  const storageConfig: StorageConfig = {
+    R2_BUCKET: env.R2_BUCKET,
+    PUBLIC_DOMAIN: env.R2_CUSTOM_DOMAIN,
+  };
 
   // 💡 Logging RBAC initialization in dev mode
   if (isDev) {
@@ -74,7 +81,7 @@ export default async function handleGraphQL(request: Request, env: Env): Promise
       }
 
       // Create service APIs
-      const { authAPI, userAPI, kvStorageAPI, categoryAPI } = createAPIs({ db, env, sessionUser });
+      const { authAPI, userAPI, kvStorageAPI, categoryAPI } = createAPIs({ db, env, sessionUser, storageConfig });
 
       return {
         jwtSecret: env.JWT_SECRET,

@@ -16,6 +16,7 @@ export type Scalars = {
   Float: { input: number; output: number };
   DateTime: { input: any; output: any };
   JSON: { input: any; output: any };
+  Upload: { input: any; output: any };
 };
 
 export type Address = {
@@ -176,7 +177,7 @@ export type EditUserInput = {
   email: Scalars["String"]["input"];
   emergency_contact_details?: InputMaybe<EmergencyContactDetailsInput>;
   emp_code?: InputMaybe<Scalars["String"]["input"]>;
-  employee_photo_url?: InputMaybe<Scalars["String"]["input"]>;
+  employee_photo_file?: InputMaybe<Scalars["Upload"]["input"]>;
   employment_type?: InputMaybe<EmploymentType>;
   first_name: Scalars["String"]["input"];
   force_password_change?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -726,6 +727,7 @@ export type ResolversTypes = {
   String: ResolverTypeWrapper<Scalars["String"]["output"]>;
   UpdateCategoryInput: UpdateCategoryInput;
   UpdateCompanyProfileInput: UpdateCompanyProfileInput;
+  Upload: ResolverTypeWrapper<Scalars["Upload"]["output"]>;
   User: ResolverTypeWrapper<User>;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
@@ -785,6 +787,7 @@ export type ResolversParentTypes = {
   String: Scalars["String"]["output"];
   UpdateCategoryInput: UpdateCategoryInput;
   UpdateCompanyProfileInput: UpdateCompanyProfileInput;
+  Upload: Scalars["Upload"]["output"];
   User: User;
   UserByEmailInput: UserByEmailInput;
   UserByFieldInput: UserByFieldInput;
@@ -1067,6 +1070,10 @@ export type SocialMediaResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export interface UploadScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes["Upload"], any> {
+  name: "Upload";
+}
+
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes["User"] = ResolversParentTypes["User"]> = {
   created_at?: Resolver<ResolversTypes["DateTime"], ParentType, ContextType>;
   created_by?: Resolver<ResolversTypes["String"], ParentType, ContextType>;
@@ -1202,6 +1209,7 @@ export type Resolvers<ContextType = any> = {
   ServiceStatus?: ServiceStatusResolvers<ContextType>;
   SignUpResponse?: SignUpResponseResolvers<ContextType>;
   SocialMedia?: SocialMediaResolvers<ContextType>;
+  Upload?: GraphQLScalarType;
   User?: UserResolvers<ContextType>;
   UserEdge?: UserEdgeResolvers<ContextType>;
   UserProfile?: UserProfileResolvers<ContextType>;

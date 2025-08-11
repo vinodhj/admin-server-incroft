@@ -39,6 +39,12 @@
       "preview_id": "2e8ed4d37b5e49c6bc531c35601d3b54",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "incroft-assets",
+    },
+  ],
 
   /**
    * Smart Placement

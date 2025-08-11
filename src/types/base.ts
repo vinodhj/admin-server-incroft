@@ -4,6 +4,7 @@ import { gql } from "graphql-tag";
 export const baseTypeDefs = gql`
   scalar DateTime
   scalar JSON
+  scalar Upload
 
   enum Sort {
     ASC

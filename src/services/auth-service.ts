@@ -67,7 +67,7 @@ export class AuthServiceAPI extends BaseService {
       tokenVersion: result.token_version,
     };
 
-    const token = generateToken(tokenPayload, this.jwtSecret, "1d");
+    const token = generateToken(tokenPayload, this.jwtSecret, "3d");
     return {
       token,
       ...result,
